@@ -7,10 +7,8 @@ Class {
 { #category : #baselines }
 BaselineOfDebuggerCommunication >> baseline: spec [
 	<baseline>
-	| repository |
-	repository := self packageRepositoryURL.
 	spec for: #common do: [ 
-		spec baseline: 'ScriptableDebugger' with: [ spec repository: repository ].
+		spec baseline: 'Sindarin' with: [ spec repository: 'github://dupriezt/ScriptableDebugger' ].
 		spec package: 'DebuggerCommunication'.
 	].
 "			package: 'Commander2-Tests' with: [ spec requires: #('Commander2') ] ]"
