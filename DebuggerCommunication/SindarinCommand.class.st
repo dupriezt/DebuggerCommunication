@@ -1,5 +1,5 @@
 Class {
-	#name : #SteppingCommand,
+	#name : #SindarinCommand,
 	#superclass : #Object,
 	#instVars : [
 		'command'
@@ -8,16 +8,16 @@ Class {
 }
 
 { #category : #accessing }
-SteppingCommand >> command: aString [ 
-	command := aString.
+SindarinCommand >> command: aSymbol [ 
+	command := aSymbol.
 ]
 
 { #category : #accessing }
-SteppingCommand >> executeOn: aDebuggerCommunication [ 
-	^ command
+SindarinCommand >> executeOn: aDebuggerServer [
+	^ aDebuggerServer sindarinDebugger perform: command
 ]
 
 { #category : #accessing }
-SteppingCommand >> serialized [
+SindarinCommand >> serialized [
 	^ FLSerializer serializeToByteArray: self.
 ]

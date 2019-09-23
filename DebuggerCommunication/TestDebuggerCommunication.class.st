@@ -13,7 +13,7 @@ TestDebuggerCommunication >> setUp [
 	"Hooks that subclasses may override to define the fixture of test."
 	server := DebuggerServerForTest new.
 	server startListeningOnPort: 1234.
-	client := DebuggerClient new.
+	client := SindarinDebuggerClient new.
 ]
 
 { #category : #running }
@@ -24,7 +24,7 @@ TestDebuggerCommunication >> tearDown [
 
 { #category : #running }
 TestDebuggerCommunication >> testManualSendStepping [
-	self assert:( server handleRequest: (SteppingCommand new command: #stepInto ; serialized)) equals: #stepInto.
+	self assert:( server handleRequest: (SindarinCommand new command: #stepInto ; serialized)) equals: #stepInto.
 ]
 
 { #category : #running }
