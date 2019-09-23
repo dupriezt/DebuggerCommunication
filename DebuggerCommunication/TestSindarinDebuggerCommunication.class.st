@@ -38,11 +38,3 @@ TestSindarinDebuggerCommunication >> testCurrentNodeAndStepOver [
 TestSindarinDebuggerCommunication >> testManualSendCurrentNode [
 	self assert:( server handleRequest: (SindarinCommand new command: #currentNode ; serialized)) selector equals: #new.
 ]
-
-{ #category : #running }
-TestSindarinDebuggerCommunication >> testSendStepping [
-	| res |
-	res := client send: #currentNode.
-	self assert: res isMessage.
-	self assert: res selector equals: #new.
-]
