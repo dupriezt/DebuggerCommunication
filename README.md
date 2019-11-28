@@ -20,4 +20,4 @@ Code in the client image (which remotely controls the debugger in the server ima
 dbgp1 := SindarinDebuggerProxyClient newOnSindarinDebuggerClient: (SindarinDebuggerClient newOnPort: 1123).
 ```
 
-Then you can send messages de `dbgp1` in the client image, as if you were sending them to the sindarin debugger running in the server image.
+Then you can send messages to `dbgp1` in the client image, as if you were sending them to the sindarin debugger running in the server image.
