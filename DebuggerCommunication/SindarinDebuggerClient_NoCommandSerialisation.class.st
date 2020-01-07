@@ -26,7 +26,7 @@ Internal Representation and Key Implementation Points.
     Implementation Points
 "
 Class {
-	#name : #'SindarinDebuggerClient_NoSerialisation',
+	#name : #'SindarinDebuggerClient_NoCommandSerialisation',
 	#superclass : #Object,
 	#instVars : [
 		'port'
@@ -35,20 +35,20 @@ Class {
 }
 
 { #category : #'instance creation' }
-SindarinDebuggerClient_NoSerialisation class >> newOnPort: anInteger [
+SindarinDebuggerClient_NoCommandSerialisation class >> newOnPort: anInteger [
 "example: anInteger = 1234"
 	^ self new newOnPort: anInteger 
 ]
 
 { #category : #'instance creation' }
-SindarinDebuggerClient_NoSerialisation >> newOnPort: anInteger [
+SindarinDebuggerClient_NoCommandSerialisation >> newOnPort: anInteger [
 	"Example: anInteger = 1234"
 	port := anInteger.
 	^ self
 ]
 
 { #category : #communication }
-SindarinDebuggerClient_NoSerialisation >> step [
+SindarinDebuggerClient_NoCommandSerialisation >> step [
 	"#s for step"
 	| client |
 	client := ZnClient new.

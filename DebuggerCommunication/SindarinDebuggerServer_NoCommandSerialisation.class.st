@@ -4,7 +4,7 @@ I am a copy of class SindarinDebuggerServer. This comment is copied from there, 
 Contains a SindarinDebugger. Listens on a port. Receives instances of SindarinRequest from a SindarinDebuggerClient and executes them on the SindarinDebugger it holds.
 "
 Class {
-	#name : #'SindarinDebuggerServer_NoSerialisation',
+	#name : #'SindarinDebuggerServer_NoCommandSerialisation',
 	#superclass : #Object,
 	#instVars : [
 		'sindarinDebugger',
@@ -14,28 +14,28 @@ Class {
 }
 
 { #category : #'instance creation' }
-SindarinDebuggerServer_NoSerialisation class >> newOnSindarinDebugger: aSindarinDebugger [
+SindarinDebuggerServer_NoCommandSerialisation class >> newOnSindarinDebugger: aSindarinDebugger [
 	^ self new newOnSindarinDebugger: aSindarinDebugger.
 ]
 
 { #category : #communication }
-SindarinDebuggerServer_NoSerialisation class >> stopAll [
+SindarinDebuggerServer_NoCommandSerialisation class >> stopAll [
 	self allInstancesDo: [ :inst | inst stop ].
 ]
 
 { #category : #'instance creation' }
-SindarinDebuggerServer_NoSerialisation >> newOnSindarinDebugger: aSindarinDebugger [
+SindarinDebuggerServer_NoCommandSerialisation >> newOnSindarinDebugger: aSindarinDebugger [
 	sindarinDebugger := aSindarinDebugger.
 	^ self.
 ]
 
 { #category : #accessing }
-SindarinDebuggerServer_NoSerialisation >> sindarinDebugger [
+SindarinDebuggerServer_NoCommandSerialisation >> sindarinDebugger [
 	^ sindarinDebugger
 ]
 
 { #category : #public }
-SindarinDebuggerServer_NoSerialisation >> startListeningOnPort: anInt [
+SindarinDebuggerServer_NoCommandSerialisation >> startListeningOnPort: anInt [
 	server := ZnServer startOn: anInt.
 	server onRequestRespond: [ :req |
 		(req entity bytes asString asSymbol = #s) ifTrue: [ self sindarinDebugger step ].
@@ -43,6 +43,6 @@ SindarinDebuggerServer_NoSerialisation >> startListeningOnPort: anInt [
 ]
 
 { #category : #public }
-SindarinDebuggerServer_NoSerialisation >> stop [
+SindarinDebuggerServer_NoCommandSerialisation >> stop [
 	server stop.
 ]
