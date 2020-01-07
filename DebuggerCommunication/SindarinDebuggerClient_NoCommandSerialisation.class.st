@@ -57,3 +57,14 @@ SindarinDebuggerClient_NoCommandSerialisation >> step [
 		entity: (ZnEntity bytes: #s asByteArray);
 		post.
 ]
+
+{ #category : #communication }
+SindarinDebuggerClient_NoCommandSerialisation >> stepOver [
+	"#o for stepOver"
+	| client |
+	client := ZnClient new.
+	client
+		url: 'http://localhost:', port asString;
+		entity: (ZnEntity bytes: #o asByteArray);
+		post.
+]

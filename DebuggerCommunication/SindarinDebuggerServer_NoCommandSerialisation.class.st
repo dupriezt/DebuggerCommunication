@@ -39,6 +39,7 @@ SindarinDebuggerServer_NoCommandSerialisation >> startListeningOnPort: anInt [
 	server := ZnServer startOn: anInt.
 	server onRequestRespond: [ :req |
 		(req entity bytes asString asSymbol = #s) ifTrue: [ self sindarinDebugger step ].
+		(req entity bytes asString asSymbol = #o) ifTrue: [ self sindarinDebugger stepOver ].
 		ZnResponse ok: #ok asByteArray. ].
 ]
 
