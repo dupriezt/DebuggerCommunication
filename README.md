@@ -21,3 +21,8 @@ dbgp1 := SindarinDebuggerProxyClient newOnSindarinDebuggerClient: (SindarinDebug
 ```
 
 Then you can send messages to `dbgp1` in the client image, as if you were sending them to the sindarin debugger running in the server image.
+
+To stop a server:
+```smalltalk
+dbgServer stop
+```
