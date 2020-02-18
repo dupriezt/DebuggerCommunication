@@ -25,7 +25,7 @@ DebuggerServer >> startListeningOnPort: anInt [
 			serialisation := [ FLSerializer serializeToByteArray: result ]
 				on: Error
 				do: [ :e | self halt: 'serialisation' ].
-			ZnResponse ok: 'ok' ]
+			ZnResponse ok: (ZnStringEntity text: 'ok') ]
 ]
 
 { #category : #public }
