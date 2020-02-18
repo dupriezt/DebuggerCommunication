@@ -14,18 +14,22 @@ DebuggerServer >> handleRequest: req [
 ]
 
 { #category : #public }
+DebuggerServer >> serialise: anObject [
+	^ STON toString: anObject
+]
+
+{ #category : #public }
 DebuggerServer >> startListeningOnPort: anInt [
-	| result serialisation |
 	server := ZnServer startOn: anInt.
 	server
-		onRequestRespond: [ :req | 
+		onRequestRespond: [ :req | | result serialisation |
 			result := [ self handleRequest: req entity bytes ]
 				on: Error
 				do: [ :e | self halt: 'result' ].
-			serialisation := [ FLSerializer serializeToByteArray: result ]
+			serialisation := [self serialise: result]
 				on: Error
 				do: [ :e | self halt: 'serialisation' ].
-			ZnResponse ok: (ZnStringEntity text: 'ok') ]
+			ZnResponse ok: serialisation ]
 ]
 
 { #category : #public }

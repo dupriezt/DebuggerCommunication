@@ -13,6 +13,11 @@ SindarinDebuggerClient class >> newOnPort: anInteger [
 	^ self new newOnPort: anInteger 
 ]
 
+{ #category : #'private protocol' }
+SindarinDebuggerClient >> materialise: aString [
+	^ STON fromString: aString
+]
+
 { #category : #'instance creation' }
 SindarinDebuggerClient >> newOnPort: anInteger [
 	"Example: anInteger = 1234"
@@ -27,6 +32,18 @@ SindarinDebuggerClient >> send: aSymbol [
 
 { #category : #'private protocol' }
 SindarinDebuggerClient >> sendCommand: aCommand [
+	| client serialisedCommand |
+	client := ZnClient new.
+	serialisedCommand := (ZnEntity bytes: aCommand serialized).
+	^ self materialise: (client
+		url: 'http://localhost:', port asString;
+		entity: serialisedCommand;
+		post;
+		response) entity contents
+]
+
+{ #category : #'private protocol' }
+SindarinDebuggerClient >> sendCommand_materialisation: aCommand [
 	| client |
 	client := ZnClient new.
 	^ FLMaterializer materializeFromByteArray:  (client
