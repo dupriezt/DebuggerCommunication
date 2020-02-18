@@ -18,14 +18,14 @@ DebuggerServer >> startListeningOnPort: anInt [
 	| result serialisation |
 	server := ZnServer startOn: anInt.
 	server
-		onRequestRespond: [ :req | ||
-			result := [self handleRequest: req entity bytes] on: Error do: [ :e | self halt: 'result' ].
-			serialisation := [FLSerializer serializeToByteArray: result] on: Error do: [:e | self halt: 'serialisation'].
-			ZnResponse
-				ok:
-					(ZnByteArrayEntity
-						bytes:
-							serialisation) ]
+		onRequestRespond: [ :req | 
+			result := [ self handleRequest: req entity bytes ]
+				on: Error
+				do: [ :e | self halt: 'result' ].
+			serialisation := [ FLSerializer serializeToByteArray: result ]
+				on: Error
+				do: [ :e | self halt: 'serialisation' ].
+			ZnResponse ok: 'ok' ]
 ]
 
 { #category : #public }
