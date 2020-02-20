@@ -4,10 +4,9 @@ Contains a SindarinDebugger. Listens on a port. Receives instances of SindarinRe
 Class {
 	#name : #SindarinDebuggerServer,
 	#superclass : #Object,
-	#traits : 'DebuggerServer',
-	#classTraits : 'DebuggerServer classTrait',
 	#instVars : [
-		'sindarinDebugger'
+		'sindarinDebugger',
+		'server'
 	],
 	#category : #DebuggerCommunication
 }
@@ -22,6 +21,13 @@ SindarinDebuggerServer class >> stopAll [
 	self allInstancesDo: [ :inst | inst stop ].
 ]
 
+{ #category : #public }
+SindarinDebuggerServer >> handleRequest: req [
+	| command |
+	command := FLMaterializer materializeFromByteArray: req.
+	^ command executeOn: self.
+]
+
 { #category : #'instance creation' }
 SindarinDebuggerServer >> newOnSindarinDebugger: aSindarinDebugger [
 	sindarinDebugger := aSindarinDebugger.
@@ -31,7 +37,32 @@ SindarinDebuggerServer >> newOnSindarinDebugger: aSindarinDebugger [
 	^ self.
 ]
 
+{ #category : #public }
+SindarinDebuggerServer >> serialise: anObject [
+	^ STON toString: anObject
+]
+
 { #category : #accessing }
 SindarinDebuggerServer >> sindarinDebugger [
 	^ sindarinDebugger
+]
+
+{ #category : #public }
+SindarinDebuggerServer >> startListeningOnPort: anInt [
+	server := ZnServer startOn: anInt.
+	server
+		onRequestRespond: [ :req | | result serialisation |
+			result := [ self handleRequest: req entity bytes ]
+				on: Error
+				do: [ :e | self halt: 'result' ].
+			serialisation := [self serialise: result]
+				on: Error
+				do: [ :e | self halt: 'serialisation' ].
+			self halt.
+			ZnResponse ok: serialisation ]
+]
+
+{ #category : #public }
+SindarinDebuggerServer >> stop [
+	server stop.
 ]
