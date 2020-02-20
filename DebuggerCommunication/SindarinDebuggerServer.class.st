@@ -59,7 +59,7 @@ SindarinDebuggerServer >> startListeningOnPort: anInt [
 				on: Error
 				do: [ :e | self halt: 'serialisation' ].
 			self halt.
-			ZnResponse ok: serialisation ]
+			ZnResponse ok: (ZnStringEntity text: serialisation) ]
 ]
 
 { #category : #public }
