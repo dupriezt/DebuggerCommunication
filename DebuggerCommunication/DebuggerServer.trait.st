@@ -29,6 +29,7 @@ DebuggerServer >> startListeningOnPort: anInt [
 			serialisation := [self serialise: result]
 				on: Error
 				do: [ :e | self halt: 'serialisation' ].
+			self halt.
 			ZnResponse ok: serialisation ]
 ]
 
