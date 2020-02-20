@@ -33,14 +33,16 @@ SindarinDebuggerClient >> send: aSymbol [
 
 { #category : #'private protocol' }
 SindarinDebuggerClient >> sendCommand: aCommand [
-	| client serialisedCommand |
+	| client serialisedCommand response |
 	client := ZnClient new.
 	serialisedCommand := (ZnEntity bytes: aCommand serialized).
-	^ self materialise: (client
+	response := client
 		url: 'http://localhost:', port asString;
 		entity: serialisedCommand;
 		post;
-		response) entity contents
+		response.
+	self halt.
+	^ self materialise: response entity contents
 ]
 
 { #category : #'private protocol' }

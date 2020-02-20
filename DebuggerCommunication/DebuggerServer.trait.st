@@ -9,7 +9,8 @@ Trait {
 { #category : #public }
 DebuggerServer >> handleRequest: req [
 	| command |
-	command := FLMaterializer materializeFromByteArray: req.
+	command := STON fromString: req.
+"	command := FLMaterializer materializeFromByteArray: req."
 	^ command executeOn: self.
 ]
 
