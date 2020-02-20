@@ -54,10 +54,10 @@ SindarinDebuggerServer >> startListeningOnPort: anInt [
 		onRequestRespond: [ :req | | result serialisation |
 			result := [ self handleRequest: req entity bytes ]
 				on: Error
-				do: [ :e | self halt: 'result' ].
+				do: [ :e | e resignalAs: Halt ].
 			serialisation := [self serialise: result]
 				on: Error
-				do: [ :e | self halt: 'serialisation' ].
+				do: [ :e | e resignalAs: Halt ].
 			self halt.
 			ZnResponse ok: (ZnStringEntity text: serialisation) ]
 ]
