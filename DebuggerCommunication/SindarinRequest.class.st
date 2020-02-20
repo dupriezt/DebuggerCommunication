@@ -22,6 +22,5 @@ SindarinRequest >> executeOn: aDebuggerServer [
 
 { #category : #accessing }
 SindarinRequest >> serialized [
-	^ STON toString: self.
-"	^ FLSerializer serializeToByteArray: self."
+	^ FLSerializer serializeToByteArray: self.
 ]

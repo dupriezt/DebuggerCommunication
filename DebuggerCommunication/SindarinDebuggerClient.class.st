@@ -15,8 +15,7 @@ SindarinDebuggerClient class >> newOnPort: anInteger [
 
 { #category : #'private protocol' }
 SindarinDebuggerClient >> materialise: aString [
-	^ aString
-"	^ STON fromString: aString"
+	^ STON fromString: aString
 ]
 
 { #category : #'instance creation' }
