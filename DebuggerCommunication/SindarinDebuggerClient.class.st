@@ -16,6 +16,7 @@ SindarinDebuggerClient class >> newOnPort: anInteger [
 { #category : #'private protocol' }
 SindarinDebuggerClient >> materialise: aString [
 	(aString prefixMatchesRegex: 'Context*') ifTrue: [ ^ aString ]. "Ston can't create Context objects because they must be created with #newForMethod:"
+	(aString prefixMatchesRegex: '''RBProgramNode''') ifTrue: [ ^ STON fromString: (aString allButFirst: ('''RBProgramNode''' size)) ]. "We have a special serialisation for RBProgramNode" 
 	^ STON fromString: aString
 ]
 
