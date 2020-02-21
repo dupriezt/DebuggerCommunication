@@ -9,6 +9,8 @@ RBProgramNode >> stonOn: stonWriter [
 	dict at: #methodSelector put: self methodNode selector.
 	dict at: #nodeType put: self class asString.
 	dict at: #class put: self methodNode methodClass asString.
+	dict at: #methodSourceCode put: self source.
+	dict at: #source put: self sourceCode.
 	stonWriter writeString: 'RBProgramNode'.
 	dict stonOn: stonWriter.
 ]
