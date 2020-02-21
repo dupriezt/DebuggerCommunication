@@ -42,7 +42,7 @@ SindarinDebuggerClient >> sendCommand: aCommand [
 		entity: serialisedCommand;
 		post;
 		response.
-	self halt.
+	"self halt."
 	^ self materialise: response entity contents
 ]
 

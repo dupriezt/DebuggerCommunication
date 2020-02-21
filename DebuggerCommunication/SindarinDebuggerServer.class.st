@@ -58,7 +58,7 @@ SindarinDebuggerServer >> startListeningOnPort: anInt [
 			serialisation := [self serialise: result]
 				on: Error
 				do: [ :e | e resignalAs: Halt ].
-			self halt.
+			"self halt."
 			ZnResponse ok: (ZnStringEntity text: serialisation) ]
 ]
 

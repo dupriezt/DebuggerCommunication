@@ -10,5 +10,4 @@ RBProgramNode >> stonOn: stonWriter [
 	dict at: #nodeType put: self class asString.
 	stonWriter writeString: 'RBProgramNode'.
 	dict stonOn: stonWriter.
-	"stonWriter writeObject: dict."
 ]
