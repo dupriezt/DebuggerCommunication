@@ -11,6 +11,6 @@ RBProgramNode >> stonOn: stonWriter [
 	dict at: #class put: self methodNode methodClass asString.
 	dict at: #methodSourceCode put: self source.
 	dict at: #source put: self sourceCode.
-	stonWriter writeString: 'RBProgramNode'.
+	"stonWriter writeString: 'RBProgramNode'."
 	dict stonOn: stonWriter.
 ]

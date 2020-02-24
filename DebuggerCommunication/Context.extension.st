@@ -13,6 +13,6 @@ Context >> stonOn: stonWriter [
 	dict := ContextRepresentation new.
 	dict at: #receiver put: self receiver asString.
 	dict at: #method put: self method asString.
-	stonWriter writeString: 'Context'.
+	"stonWriter writeString: 'Context'."
 	dict stonOn: stonWriter.
 ]
