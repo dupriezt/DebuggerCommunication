@@ -9,5 +9,10 @@ Context >> fromSton: stonReader [
 
 { #category : #'*DebuggerCommunication' }
 Context >> stonOn: stonWriter [
-	stonWriter writeObject: self streamShortList: [ :array | array add: receiver ]
+	| dict |
+	dict := ContextRepresentation new.
+	dict at: #receiver put: self receiver asString.
+	dict at: #method put: self method asString.
+	stonWriter writeString: 'Context'.
+	dict stonOn: stonWriter.
 ]
