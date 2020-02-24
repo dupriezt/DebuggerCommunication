@@ -11,7 +11,8 @@ Context >> fromSton: stonReader [
 Context >> stonOn: stonWriter [
 	| dict |
 	dict := ContextRepresentation new.
-	dict at: #receiver put: self receiver asString.
+	receiver := self receiver.
+	dict at: #receiver put: ([receiver asString] on: Error do: [:e | 'Not Printable. Error: ', e asString]).
 	dict at: #method put: self method asString.
 	"stonWriter writeString: 'Context'."
 	dict stonOn: stonWriter.
