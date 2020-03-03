@@ -92,9 +92,8 @@ DebuggerCommunicationTest >> testSerialiseContext [
 	self assert: (contextRepresentation at: #method) equals: 'executeOn: aDebuggerServer
 	^ thisContext'.
 	nodeRepresentation := contextRepresentation at: #node.
-	self assert: (nodeRepresentation at: #source) equals: 'executeOn: aDebuggerServer
-	^ thisContext'.
-	self assert: (nodeRepresentation at: #nodeType) equals: 'RBMethodNode'.
+	self assert: (nodeRepresentation at: #source) equals: 'thisContext'.
+	self assert: (nodeRepresentation at: #nodeType) equals: 'RBThisContextNode'.
 ]
 
 { #category : #tests }
