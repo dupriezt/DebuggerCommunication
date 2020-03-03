@@ -5,7 +5,8 @@ Class {
 		'dbg',
 		'dbgServer',
 		'dbgp',
-		'dbgl'
+		'dbgl',
+		'dbgc'
 	],
 	#category : #'DebuggerCommunication-Tests'
 }
@@ -30,7 +31,8 @@ DebuggerCommunicationTest >> setUp [
 	dbgServer startListeningOnPort: port.
 	
 	"Proxy debugger on the debugger controlling the remotely-controlled execution"
-	dbgp := SindarinDebuggerProxyClient newOnSindarinDebuggerClient: (SindarinDebuggerClient newOnPort: port).
+	dbgc := SindarinDebuggerClient newOnPort: port.
+	dbgp := SindarinDebuggerProxyClient newOnSindarinDebuggerClient: dbgc.
 ]
 
 { #category : #tests }
@@ -58,4 +60,31 @@ DebuggerCommunicationTest >> testSameAfterStep [
 DebuggerCommunicationTest >> testSameStart [
 	"Test that both the local and remotely-controlled execution start at the same point"
 	self assert: self areExecutionsAtTheSamePoint.
+]
+
+{ #category : #tests }
+DebuggerCommunicationTest >> testSerialiseASTNode [
+	| astNodeRepresentation |
+	astNodeRepresentation := dbgc sendRequest: TestRequestReturnASTNode new.
+	self assert: (astNodeRepresentation at: #source) equals: 'self myMessage: 25'.
+	self assert: (astNodeRepresentation at: #class) equals: 'TestRequestReturnASTNode'.
+	self assert: (astNodeRepresentation at: #nodeType) equals: 'RBMessageNode'.
+	self assert: (astNodeRepresentation at: #stop) equals: 30.
+	self assert: (astNodeRepresentation at: #start) equals: 13.
+	self assert: (astNodeRepresentation at: #methodSourceCode) equals: 'testMethod
+	self myMessage: 25'.
+	self assert: (astNodeRepresentation at: #methodSelector) equals: #testMethod.
+]
+
+{ #category : #tests }
+DebuggerCommunicationTest >> testSerialiseBlockClosure [
+	| blockClosure |
+	"Serialising a BlockClosure does not work at the moment"
+	blockClosure := dbgc sendRequest: TestRequestReturnBlockClosure new.
+	self assert: blockClosure value equals: 42.
+]
+
+{ #category : #tests }
+DebuggerCommunicationTest >> testSerialiseInteger [
+	self assert: (dbgc sendRequest: TestRequestReturnFive new) equals: 5.
 ]

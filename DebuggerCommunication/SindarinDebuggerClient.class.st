@@ -30,14 +30,14 @@ SindarinDebuggerClient >> newOnPort: anInteger [
 
 { #category : #communication }
 SindarinDebuggerClient >> send: aSymbol [
-  ^self sendCommand: (SindarinRequest new command: aSymbol ; yourself)
+  ^self sendRequest: (SindarinRequest new command: aSymbol ; yourself)
 ]
 
 { #category : #'private protocol' }
-SindarinDebuggerClient >> sendCommand: aCommand [
+SindarinDebuggerClient >> sendRequest: aRequest [
 	| client serialisedCommand response |
 	client := ZnClient new.
-	serialisedCommand := (ZnEntity bytes: aCommand serialized).
+	serialisedCommand := (ZnEntity bytes: aRequest serialized).
 	response := client
 		url: 'http://localhost:', port asString;
 		entity: serialisedCommand;
@@ -48,28 +48,28 @@ SindarinDebuggerClient >> sendCommand: aCommand [
 ]
 
 { #category : #'private protocol' }
-SindarinDebuggerClient >> sendCommand_materialisation: aCommand [
+SindarinDebuggerClient >> sendRequest_materialisation: aRequest [
 	| client |
 	client := ZnClient new.
 	^ FLMaterializer materializeFromByteArray:  (client
 		url: 'http://localhost:', port asString;
-		entity: (ZnEntity bytes: aCommand serialized);
+		entity: (ZnEntity bytes: aRequest serialized);
 		post;
 		response) entity bytes
 ]
 
 { #category : #'private protocol' }
-SindarinDebuggerClient >> sendCommand_noMaterialisation: aCommand [
+SindarinDebuggerClient >> sendRequest_noMaterialisation: aRequest [
 	| client |
 	client := ZnClient new.
 	^  (client
 		url: 'http://localhost:', port asString;
-		entity: (ZnEntity bytes: aCommand serialized);
+		entity: (ZnEntity bytes: aRequest serialized);
 		post;
 		response) entity bytes
 ]
 
 { #category : #communication }
 SindarinDebuggerClient >> send_noMaterialisation: aSymbol [
-  ^self sendCommand_noMaterialisation: (SindarinRequest new command: aSymbol ; yourself)
+  ^self sendRequest_noMaterialisation: (SindarinRequest new command: aSymbol ; yourself)
 ]
