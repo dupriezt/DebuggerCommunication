@@ -85,6 +85,19 @@ DebuggerCommunicationTest >> testSerialiseBlockClosure [
 ]
 
 { #category : #tests }
+DebuggerCommunicationTest >> testSerialiseContext [
+	| contextRepresentation nodeRepresentation |
+	contextRepresentation := dbgc sendRequest: TestRequestReturnContext new.
+	self assert: (contextRepresentation at: #receiver) equals: 'a TestRequestReturnContext'.
+	self assert: (contextRepresentation at: #method) equals: 'executeOn: aDebuggerServer
+	^ thisContext'.
+	nodeRepresentation := contextRepresentation at: #node.
+	self assert: (nodeRepresentation at: #source) equals: 'executeOn: aDebuggerServer
+	^ thisContext'.
+	self assert: (nodeRepresentation at: #nodeType) equals: 'RBMethodNode'.
+]
+
+{ #category : #tests }
 DebuggerCommunicationTest >> testSerialiseInteger [
 	self assert: (dbgc sendRequest: TestRequestReturnFive new) equals: 5.
 ]
