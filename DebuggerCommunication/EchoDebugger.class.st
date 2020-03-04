@@ -50,3 +50,21 @@ EchoDebugger >> proxyClientForWorkingExec [
 EchoDebugger >> proxyClientForWorkingExec: anObject [
 	proxyClientForWorkingExec := anObject
 ]
+
+{ #category : #'as yet unclassified' }
+EchoDebugger >> stepToSenderContext [
+	| senderContext_working senderContext_failing result |
+	senderContext_working := proxyClientForWorkingExec stack at: 2.
+	senderContext_failing := proxyClientForFailingExec stack at: 2.
+	result := Dictionary new.
+	
+	result at: #steppedNodes_working put: OrderedCollection new.
+	[proxyClientForWorkingExec context = senderContext_working] whileFalse: [ (result at: #steppedNodes_working) add: proxyClientForWorkingExec node. proxyClientForWorkingExec step ].
+	
+	result at: #steppedNodes_failing put: OrderedCollection new.
+	[ proxyClientForFailingExec context = senderContext_failing ] whileFalse: [ (result at: #steppedNodes_failing) add: proxyClientForFailingExec node. proxyClientForFailingExec step ].
+
+	result at: #onSameNode put: (self isOnSameNode).
+	^ result
+	
+]
