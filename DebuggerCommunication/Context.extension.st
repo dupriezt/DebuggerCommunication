@@ -14,7 +14,7 @@ Context >> stonOn: stonWriter [
 	receiver := self receiver.
 	dict at: #receiver put: ([receiver asString] on: Error do: [:e | 'Not Printable. Error: ', e asString]).
 	dict at: #method put: self method asString.
-	dict at: #class put: self method methodClass.
+	dict at: #class put: self method methodClass asString.
 	dict at: #node put: self sourceNodeExecuted.
 	dict stonOn: stonWriter.
 ]
