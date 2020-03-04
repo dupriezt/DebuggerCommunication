@@ -1,5 +1,10 @@
 Class {
 	#name : #ContextRepresentation,
-	#superclass : #Dictionary,
+	#superclass : #Representation,
 	#category : #DebuggerCommunication
 }
+
+{ #category : #comparison }
+ContextRepresentation >> keysToIgnoreForComparison [
+	^ { #node }
+]
