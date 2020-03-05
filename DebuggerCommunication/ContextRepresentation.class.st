@@ -3,8 +3,3 @@ Class {
 	#superclass : #Representation,
 	#category : #DebuggerCommunication
 }
-
-{ #category : #comparison }
-ContextRepresentation >> keysToIgnoreForComparison [
-	^ { #node }
-]
