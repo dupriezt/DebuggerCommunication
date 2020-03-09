@@ -22,7 +22,7 @@ EchoDebugger >> nodes [
 	^ result
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #operation }
 EchoDebugger >> parallelStepUntilDivergence [
 	"Step both executions until they are not on the same node, or one of them is finished. Return the list of the ast nodes that were encountered by both executions, including the starting node"
 	| steppedNodes |
@@ -51,18 +51,20 @@ EchoDebugger >> proxyClientForWorkingExec: anObject [
 	proxyClientForWorkingExec := anObject
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #operation }
 EchoDebugger >> stepToSenderContext [
-	| senderContext_working senderContext_failing result |
-	senderContext_working := proxyClientForWorkingExec stack at: 2.
-	senderContext_failing := proxyClientForFailingExec stack at: 2.
+	"Step both executions until the size of their context stack is one less than currently. Return a dictionary containing the nodes stepped by each execution, and whether they ended up on the same node"
+	| result stackSizeGoal_working stackSizeGoal_failing |
+	stackSizeGoal_working := proxyClientForWorkingExec stack size - 1.
+	stackSizeGoal_failing := proxyClientForWorkingExec stack size - 1.
+	(stackSizeGoal_working = 0 or: [ stackSizeGoal_failing = 0 ]) ifTrue: [ self error: 'Trying to step until context stack is empty' ].
 	result := Dictionary new.
 	
 	result at: #steppedNodes_working put: OrderedCollection new.
-	[proxyClientForWorkingExec context = senderContext_working] whileFalse: [ (result at: #steppedNodes_working) add: proxyClientForWorkingExec node. proxyClientForWorkingExec step ].
+	[proxyClientForWorkingExec stack size = stackSizeGoal_working] whileFalse: [ (result at: #steppedNodes_working) add: proxyClientForWorkingExec node. proxyClientForWorkingExec step ].
 	
 	result at: #steppedNodes_failing put: OrderedCollection new.
-	[ proxyClientForFailingExec context = senderContext_failing ] whileFalse: [ (result at: #steppedNodes_failing) add: proxyClientForFailingExec node. proxyClientForFailingExec step ].
+	[ proxyClientForFailingExec stack size = stackSizeGoal_failing ] whileFalse: [ (result at: #steppedNodes_failing) add: proxyClientForFailingExec node. proxyClientForFailingExec step ].
 
 	result at: #onSameNode put: (self isOnSameNode).
 	^ result
