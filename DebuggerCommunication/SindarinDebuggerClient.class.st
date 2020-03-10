@@ -28,6 +28,21 @@ SindarinDebuggerClient >> newOnPort: anInteger [
 	^ self
 ]
 
+{ #category : #'private protocol' }
+SindarinDebuggerClient >> ping [
+	| client serialisedCommand response request |
+	client := ZnClient new.
+	request := PingRequest new.
+	serialisedCommand := (ZnEntity bytes: request serialized).
+	response := client
+		url: 'http://localhost:', port asString;
+		entity: serialisedCommand;
+		post;
+		response.
+	"self halt."
+	^ response entity contents = request correctResponse
+]
+
 { #category : #communication }
 SindarinDebuggerClient >> send: aSymbol [
   ^self sendRequest: (SindarinRequest new command: aSymbol ; yourself)

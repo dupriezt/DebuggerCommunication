@@ -5,6 +5,11 @@ Class {
 }
 
 { #category : #accessing }
+PingRequest >> correctResponse [
+	^ 'pong'
+]
+
+{ #category : #accessing }
 PingRequest >> isPing [
 	^ true
 ]

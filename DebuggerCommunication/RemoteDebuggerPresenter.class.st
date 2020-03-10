@@ -62,6 +62,7 @@ RemoteDebuggerPresenter >> connectPresenters_old [
 RemoteDebuggerPresenter >> connectToDebuggerServerOnPort: anInteger [
 	debuggerClient := SindarinDebuggerClient newOnPort: anInteger.
 	debuggerProxyClient := SindarinDebuggerProxyClient newOnSindarinDebuggerClient: debuggerClient.
+	(debuggerClient ping) ifTrue: [self inform: 'Connected on port ', anInteger].
 ]
 
 { #category : #specs }

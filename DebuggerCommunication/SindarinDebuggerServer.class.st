@@ -52,7 +52,7 @@ SindarinDebuggerServer >> startListeningOnPort: anInt [
 	server := ZnServer startOn: anInt.
 	server
 		onRequestRespond: [ :req | | result serialisation |
-			req isPing ifTrue: [ ZnResponse ok: (ZnStringEntity text: 'pong' ) ] ifFalse: [
+			req isPing ifTrue: [ ZnResponse ok: (ZnStringEntity text: req correctResponse) ] ifFalse: [
 				result := [ self handleRequest: req entity bytes ]
 					on: Error
 					do: [ :e | e resignalAs: Halt ].
