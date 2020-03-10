@@ -39,8 +39,6 @@ SindarinDebuggerClient >> ping [
 		entity: serialisedCommand;
 		post;
 		response.
-	"self halt."
-	self halt.
 	^ response entity contents = request correctResponse
 ]
 
