@@ -13,7 +13,8 @@ Class {
 		'connectButtons',
 		'debuggerClient',
 		'debuggerProxyClient',
-		'node'
+		'node',
+		'refreshButton'
 	],
 	#category : #DebuggerCommunication
 }
@@ -28,6 +29,25 @@ RemoteDebuggerPresenter class >> defaultSpec [
 RemoteDebuggerPresenter class >> open [
 	<script>
 	(self on: nil "model object, will be used as argument in #setModelBeforeInitialization:") openWithSpec.
+]
+
+{ #category : #initialization }
+RemoteDebuggerPresenter >> buttonAction_inspect [
+	| dict |
+	^ [
+		dict := Dictionary new.
+		dict at: #debuggerClient put: debuggerClient.
+		dict at: #debuggerProxyClient put: debuggerProxyClient.
+		dict at: #stack put: self stackTable items.
+		dict at: #context put: (self stackTable selectedItems ifEmpty: [ nil ] ifNotEmpty: [ :array | array at: 1 ]).
+		dict at: #node put: node.
+		dict inspect
+	]
+]
+
+{ #category : #initialization }
+RemoteDebuggerPresenter >> buttonAction_refresh [
+	^ [ self refreshExecution ]
 ]
 
 { #category : #data }
@@ -66,7 +86,7 @@ RemoteDebuggerPresenter >> connectToDebuggerServerOnPort: anInteger [
 	debuggerProxyClient := SindarinDebuggerProxyClient newOnSindarinDebuggerClient: debuggerClient.
 	[(debuggerClient ping) ifTrue: [
 		self inform: 'Connected on port ', anInteger.
-		self stackTable items: debuggerProxyClient stack.
+		self refreshExecution.
 	]] on: ConnectionTimedOut do: [self inform: 'Cannot connect to port ', anInteger].
 
 	
@@ -75,7 +95,7 @@ RemoteDebuggerPresenter >> connectToDebuggerServerOnPort: anInteger [
 { #category : #specs }
 RemoteDebuggerPresenter >> constraintsOfButtons [
 	"Defines a common constraint to be used for all buttons"
-	^ [ :cstr | cstr width: 120. cstr height: 20 ]
+	^ [ :cstr | cstr width: 120. cstr height: 30 ]
 	
 ]
 
@@ -102,6 +122,28 @@ RemoteDebuggerPresenter >> defaultSpec_ [
 
 	^ SpBoxLayout newVertical
 		add: connectionBoxLayout withConstraints: [:cstr | cstr height: 50];
+		add: (SpBoxLayout newVertical
+			add: #inspectButton withConstraints: self constraintsOfButtons;
+			add: #refreshButton withConstraints: self constraintsOfButtons;
+			yourself
+		) withConstraints: [:cstr | cstr height: 2 * 30];
+		"add: (SpBoxLayout newVertical
+			add: (SpGridLayout new
+				add: #inspectButton at: 1@1;
+				add: #refreshButton at: 2@1;
+				borderWidth: 0;
+				columnSpacing: 5;
+				yourself 
+			) withConstraints: [:cstr | cstr height: 30. cstr expand: false. cstr fill: false];
+			yourself);"
+		"add: (SpBoxLayout newHorizontal
+			add: (SpBoxLayout newVertical
+				add: #inspectButton withConstraints: self constraintsOfButtons;
+				yourself);
+			add: (SpBoxLayout newVertical
+				add: #refreshButton withConstraints: self constraintsOfButtons;
+				yourself);
+			yourself);"
 		add: #stack;
 		add: #contextInspector;
 		add: #nodeViewer;
@@ -126,7 +168,14 @@ RemoteDebuggerPresenter >> initializePresenters [
 	portField whenTextIsAcceptedDo: [:port | self connectToDebuggerServerOnPort: port ].
 	"connectButtons := self newButton."
 	
-	
+	inspectButton := self newButton.
+	inspectButton label: 'Inspect';
+	action: self buttonAction_inspect.
+		
+	refreshButton := self newButton.
+	refreshButton label: 'Refresh';
+	action: self buttonAction_refresh.	
+		
 	stackPresenterProvider := [ |stackTable classColumn selectorColumn|
 		stackTable := self newTable.
 		classColumn := SpStringTableColumn new.
@@ -239,6 +288,12 @@ RemoteDebuggerPresenter >> nodeViewerCodePresenter [
 { #category : #initialization }
 RemoteDebuggerPresenter >> nodeViewerRawTable [
 	^ (nodeViewer pageAt: 2) activePresenter
+]
+
+{ #category : #initialization }
+RemoteDebuggerPresenter >> refreshExecution [
+	self stackTable items: debuggerProxyClient stack.
+	self stackTable selectIndex: 1.
 ]
 
 { #category : #initialization }

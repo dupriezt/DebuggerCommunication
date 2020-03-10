@@ -188,7 +188,7 @@ EchoDebuggerPresenter >> initializeWindow: aWindowPresenter [
 	super initializeWindow: aWindowPresenter.
 	aWindowPresenter
 		title: 'EchoDebugger';
-		initialExtent: 700@700; "initial width@height of the window"
+		initialExtent: 1300@800; "initial width@height of the window"
 		windowIcon: (self iconManager iconNamed: #home) "Icon that will be shown in the bottom windowbar for this window"
 ]
 
