@@ -12,7 +12,8 @@ Class {
 		'portField',
 		'connectButtons',
 		'debuggerClient',
-		'debuggerProxyClient'
+		'debuggerProxyClient',
+		'node'
 	],
 	#category : #DebuggerCommunication
 }
@@ -65,7 +66,7 @@ RemoteDebuggerPresenter >> connectToDebuggerServerOnPort: anInteger [
 	debuggerProxyClient := SindarinDebuggerProxyClient newOnSindarinDebuggerClient: debuggerClient.
 	[(debuggerClient ping) ifTrue: [
 		self inform: 'Connected on port ', anInteger.
-		(stack pageAt: 1) activePresenter items: debuggerProxyClient stack.
+		self stackTable items: debuggerProxyClient stack.
 	]] on: ConnectionTimedOut do: [self inform: 'Cannot connect to port ', anInteger].
 
 	
@@ -84,6 +85,11 @@ RemoteDebuggerPresenter >> constraintsOfLabels [
 	^ [ :cstr | cstr height: 20 ]
 ]
 
+{ #category : #initialization }
+RemoteDebuggerPresenter >> contextTable [
+	^ (contextInspector pageAt: 1) activePresenter
+]
+
 { #category : #specs }
 RemoteDebuggerPresenter >> defaultSpec_ [
 	| connectionBoxLayout |
@@ -95,7 +101,7 @@ RemoteDebuggerPresenter >> defaultSpec_ [
 		yourself.
 
 	^ SpBoxLayout newVertical
-		add: connectionBoxLayout;
+		add: connectionBoxLayout withConstraints: [:cstr | cstr height: 50];
 		add: #stack;
 		add: #contextInspector;
 		add: #nodeViewer;
@@ -115,7 +121,7 @@ RemoteDebuggerPresenter >> iconManager [
 
 { #category : #initialization }
 RemoteDebuggerPresenter >> initializePresenters [
-	| stackPresenterProvider stackPage |
+	| stackPresenterProvider stackPage contextPresenterProvider contextPage nodeViewerCodePageProvider nodeViewerCodePage nodeViewerRawPageProvider nodeViewerRawPage |
 	portField := self newNumberInput.
 	portField whenTextIsAcceptedDo: [:port | self connectToDebuggerServerOnPort: port ].
 	"connectButtons := self newButton."
@@ -131,17 +137,54 @@ RemoteDebuggerPresenter >> initializePresenters [
 		evaluation: [ :context | context at: #selector ].
 		stackTable addColumn: classColumn.
 		stackTable addColumn: selectorColumn.
+		
+		stackTable whenSelectionChangedDo: self stackTableSelectionChangedBlock.
 		stackTable.
 	].
 	stackPage := SpNotebookPage title: 'stack' provider: stackPresenterProvider.
 	stack := self newNotebook.
 	stack addPage: stackPage.
 	
-	contextInspector := self newText.
-	contextInspector text: 'Context inspector'.
-	
-	nodeViewer := self newText.
-	nodeViewer text: 'Node viewer'.
+	contextPresenterProvider := [ | contextTable keyColumn valueColumn|
+		contextTable := self newTable.
+		keyColumn := SpStringTableColumn new.
+		keyColumn title: 'key';
+		evaluation: [ :assoc | assoc key ];
+		width: 60.
+		valueColumn := SpStringTableColumn new.
+		valueColumn title: 'value';
+		evaluation: [ :assoc | assoc value ].
+		contextTable addColumn: keyColumn; addColumn: valueColumn.
+		contextTable.	
+	].
+	contextPage := SpNotebookPage title: 'context' provider: contextPresenterProvider.
+	contextInspector := self newNotebook.
+	contextInspector addPage: contextPage.
+
+	nodeViewerRawPageProvider := [ | nodeViewerRawTable keyColumn valueColumn|
+		nodeViewerRawTable := self newTable.
+		keyColumn := SpStringTableColumn new.
+		keyColumn title: 'key';
+		evaluation: [ :assoc | assoc key ];
+		width: 90.
+		valueColumn := SpStringTableColumn new.
+		valueColumn title: 'value';
+		evaluation: [ :assoc | assoc value ].
+		nodeViewerRawTable addColumn: keyColumn; addColumn: valueColumn.
+		node ifNotNil: [ :node_ | nodeViewerRawTable items: node_ associations ].
+		nodeViewerRawTable.
+	].
+	nodeViewerCodePageProvider := [ | nodeViewerCodePresenter |
+		nodeViewerCodePresenter := self newCode.
+		nodeViewerCodePresenter withSyntaxHighlight; acceptBlock: [ ]; autoAccept: true.
+		nodeViewerCodePresenter.
+	].
+	nodeViewerCodePage := SpNotebookPage title: 'node (code)' provider: nodeViewerCodePageProvider.
+	nodeViewerRawPage := SpNotebookPage title: 'node (raw)' provider: nodeViewerRawPageProvider.
+	nodeViewer := self newNotebook.
+	nodeViewer addPage: nodeViewerCodePage.
+	nodeViewer addPage: nodeViewerRawPage.
+
 ]
 
 { #category : #initialization }
@@ -189,9 +232,37 @@ RemoteDebuggerPresenter >> inspectSelectedItem [
 ]
 
 { #category : #initialization }
+RemoteDebuggerPresenter >> nodeViewerCodePresenter [
+	^ (nodeViewer pageAt: 1) activePresenter
+]
+
+{ #category : #initialization }
+RemoteDebuggerPresenter >> nodeViewerRawTable [
+	^ (nodeViewer pageAt: 2) activePresenter
+]
+
+{ #category : #initialization }
 RemoteDebuggerPresenter >> setModelBeforeInitialization: anObject [
 	"This method is called before the initialisation methods (like #initializePresenters), when this presenter instance is created by sending #on: to its class. It is typically used to fill the instance variables of this presenter instance before the initilisation methods get called.
 	@anObject is the argument provided to the #on: call. It typically contains all the values to be put into the instance variables"
 	
 	"instanceVariable1 := anObject getValueForInstanceVariable1"
+]
+
+{ #category : #initialization }
+RemoteDebuggerPresenter >> stackTable [
+	^ (stack pageAt: 1) activePresenter
+]
+
+{ #category : #initialization }
+RemoteDebuggerPresenter >> stackTableSelectionChangedBlock [
+	| selectedContext |
+	^ [ :newSelection |
+		selectedContext := self stackTable items at: newSelection selectedIndex.
+		self contextTable items: selectedContext associations.
+		node := selectedContext at: #node.
+		(self nodeViewerRawTable) ifNotNil: [:nodeViewerRawTable | nodeViewerRawTable items: (selectedContext at: #node) associations].
+		self nodeViewerCodePresenter text: (node at: #methodSourceCode).
+		self nodeViewerCodePresenter behavior: (SmalltalkImage current classNamed: (selectedContext at: #class)).
+		]
 ]
