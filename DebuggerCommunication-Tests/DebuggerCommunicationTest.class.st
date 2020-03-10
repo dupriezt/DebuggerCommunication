@@ -16,23 +16,34 @@ DebuggerCommunicationTest >> areExecutionsAtTheSamePoint [
 	^ dbgl node = dbgp node
 ]
 
+{ #category : #tests }
+DebuggerCommunicationTest >> blockToDebug [
+	^ [ Point x: 1 y: 2 ]
+]
+
 { #category : #running }
 DebuggerCommunicationTest >> setUp [
 	"Hooks that subclasses may override to define the fixture of test."
 	| port |
-	port := 8246.
+	port := 8248.
 	
 	"Debugger on the local execution"
-	dbgl := SindarinDebugger debug: [  Point x: 1 y: 2 ].
+	dbgl := SindarinDebugger debug: self blockToDebug.
 	
 	"Debugger on the remotely-controlled execution"
-	dbg := SindarinDebugger debug: [ Point x: 1 y: 2 ].
+	dbg := SindarinDebugger debug: self blockToDebug.
 	dbgServer := SindarinDebuggerServer newOnSindarinDebugger: dbg.
 	dbgServer startListeningOnPort: port.
 	
 	"Proxy debugger on the debugger controlling the remotely-controlled execution"
 	dbgc := SindarinDebuggerClient newOnPort: port.
 	dbgp := SindarinDebuggerProxyClient newOnSindarinDebuggerClient: dbgc.
+]
+
+{ #category : #running }
+DebuggerCommunicationTest >> tearDown [
+	"Hooks that subclasses may override to clean the fixture of test."
+	dbgServer stop.
 ]
 
 { #category : #tests }
@@ -88,12 +99,14 @@ DebuggerCommunicationTest >> testSerialiseBlockClosure [
 DebuggerCommunicationTest >> testSerialiseContext [
 	| contextRepresentation nodeRepresentation |
 	contextRepresentation := dbgc sendRequest: TestRequestReturnContext new.
-	self assert: (contextRepresentation at: #receiver) equals: 'a TestRequestReturnContext'.
+	self halt.
+	"self assert: (contextRepresentation at: #receiver) equals: 'a TestRequestReturnContext'.
 	self assert: (contextRepresentation at: #method) equals: 'executeOn: aDebuggerServer
 	^ thisContext'.
+	self assert: (contextRepresentation at: #selector) equals: 'executeOn:'."
 	nodeRepresentation := contextRepresentation at: #node.
-	self assert: (nodeRepresentation at: #source) equals: 'thisContext'.
-	self assert: (nodeRepresentation at: #nodeType) equals: 'RBThisContextNode'.
+	"self assert: (nodeRepresentation at: #source) equals: 'thisContext'.
+	self assert: (nodeRepresentation at: #nodeType) equals: 'RBThisContextNode'."
 ]
 
 { #category : #tests }

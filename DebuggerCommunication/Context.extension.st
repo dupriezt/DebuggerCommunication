@@ -16,5 +16,6 @@ Context >> stonOn: stonWriter [
 	dict at: #method put: self method asString.
 	dict at: #class put: self method methodClass asString.
 	dict at: #node put: self currentNode.
+	"dict at: #selector put: self method selector asString."
 	dict stonOn: stonWriter.
 ]

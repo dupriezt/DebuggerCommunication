@@ -6,5 +6,6 @@ Class {
 
 { #category : #execution }
 TestRequestReturnContext >> executeOn: aDebuggerServer [
-	^ thisContext
+	^ aDebuggerServer sindarinDebugger context.
+"	^ thisContext"
 ]

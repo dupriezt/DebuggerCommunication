@@ -49,6 +49,7 @@ RemoteDebuggerPresenter >> collectionOfPoints [
 
 { #category : #initialization }
 RemoteDebuggerPresenter >> connectPresenters [
+	
 ]
 
 { #category : #initialization }
@@ -62,7 +63,12 @@ RemoteDebuggerPresenter >> connectPresenters_old [
 RemoteDebuggerPresenter >> connectToDebuggerServerOnPort: anInteger [
 	debuggerClient := SindarinDebuggerClient newOnPort: anInteger.
 	debuggerProxyClient := SindarinDebuggerProxyClient newOnSindarinDebuggerClient: debuggerClient.
-	[(debuggerClient ping) ifTrue: [self inform: 'Connected on port ', anInteger]] on: ConnectionTimedOut do: [self inform: 'Cannot connect to port ', anInteger].
+	[(debuggerClient ping) ifTrue: [
+		self inform: 'Connected on port ', anInteger.
+		(stack pageAt: 1) activePresenter items: debuggerProxyClient stack.
+	]] on: ConnectionTimedOut do: [self inform: 'Cannot connect to port ', anInteger].
+
+	
 ]
 
 { #category : #specs }
@@ -109,13 +115,27 @@ RemoteDebuggerPresenter >> iconManager [
 
 { #category : #initialization }
 RemoteDebuggerPresenter >> initializePresenters [
+	| stackPresenterProvider stackPage |
 	portField := self newNumberInput.
 	portField whenTextIsAcceptedDo: [:port | self connectToDebuggerServerOnPort: port ].
 	"connectButtons := self newButton."
 	
 	
-	stack := self newText.
-	stack text: 'stack'.
+	stackPresenterProvider := [ |stackTable classColumn selectorColumn|
+		stackTable := self newTable.
+		classColumn := SpStringTableColumn new.
+		classColumn title: 'Class';
+		evaluation: [ :context | context at: #class ].
+		selectorColumn := SpStringTableColumn new.
+		selectorColumn title: 'Selector';
+		evaluation: [ :context | context at: #selector ].
+		stackTable addColumn: classColumn.
+		stackTable addColumn: selectorColumn.
+		stackTable.
+	].
+	stackPage := SpNotebookPage title: 'stack' provider: stackPresenterProvider.
+	stack := self newNotebook.
+	stack addPage: stackPage.
 	
 	contextInspector := self newText.
 	contextInspector text: 'Context inspector'.
@@ -160,7 +180,7 @@ RemoteDebuggerPresenter >> initializeWindow: aWindowPresenter [
 	aWindowPresenter
 		title: 'EchoDebugger';
 		initialExtent: 500@280; "initial width@height of the window"
-		windowIcon: (self iconManager iconNamed: #home) "Icon that will be shown in the bottom windowbar for this window"
+		windowIcon: (self iconManager iconNamed: #home). "Icon that will be shown in the bottom windowbar for this window"
 ]
 
 { #category : #'button action' }
