@@ -22,10 +22,13 @@ SindarinDebuggerServer class >> stopAll [
 ]
 
 { #category : #public }
-SindarinDebuggerServer >> handleRequest: req [
-	| command |
-	command := FLMaterializer materializeFromByteArray: req.
-	^ command executeOn: self.
+SindarinDebuggerServer >> handleRequest: aRequest [
+	^ aRequest executeOn: self.
+]
+
+{ #category : #public }
+SindarinDebuggerServer >> materialiseRequest: serialisedRequest [
+	^ FLMaterializer materializeFromByteArray: serialisedRequest.
 ]
 
 { #category : #'instance creation' }
@@ -49,11 +52,15 @@ SindarinDebuggerServer >> sindarinDebugger [
 
 { #category : #public }
 SindarinDebuggerServer >> startListeningOnPort: anInt [
+	| request |
 	server := ZnServer startOn: anInt.
 	server
 		onRequestRespond: [ :req | | result serialisation |
-			req isPing ifTrue: [ ZnResponse ok: (ZnStringEntity text: req correctResponse) ] ifFalse: [
-				result := [ self handleRequest: req entity bytes ]
+			request := self materialiseRequest: req entity bytes.
+			request isPing ifTrue: [
+				ZnResponse ok: (ZnStringEntity text: req correctResponse) ]
+			ifFalse: [
+				result := [ self handleRequest: request]
 					on: Error
 					do: [ :e | e resignalAs: Halt ].
 				serialisation := [self serialise: result]

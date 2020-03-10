@@ -40,6 +40,7 @@ SindarinDebuggerClient >> ping [
 		post;
 		response.
 	"self halt."
+	self halt.
 	^ response entity contents = request correctResponse
 ]
 
