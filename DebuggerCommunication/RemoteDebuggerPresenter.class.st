@@ -8,7 +8,11 @@ Class {
 		'inspectButton',
 		'stack',
 		'contextInspector',
-		'nodeViewer'
+		'nodeViewer',
+		'portField',
+		'connectButtons',
+		'debuggerClient',
+		'debuggerProxyClient'
 	],
 	#category : #DebuggerCommunication
 }
@@ -23,13 +27,6 @@ RemoteDebuggerPresenter class >> defaultSpec [
 RemoteDebuggerPresenter class >> open [
 	<script>
 	(self on: nil "model object, will be used as argument in #setModelBeforeInitialization:") openWithSpec.
-]
-
-{ #category : #specs }
-RemoteDebuggerPresenter >> buttonConstraints [
-	"Defines a common constraint to be used for all buttons"
-	^ [ :cstr | cstr width: 120. cstr height: 20 ]
-	
 ]
 
 { #category : #data }
@@ -61,12 +58,33 @@ RemoteDebuggerPresenter >> connectPresenters_old [
 	executeButton action: [ self inform: 'Todo' ]
 ]
 
+{ #category : #initialization }
+RemoteDebuggerPresenter >> connectToDebuggerServerOnPort: anInteger [
+	debuggerClient := SindarinDebuggerClient newOnPort: anInteger.
+	debuggerProxyClient := SindarinDebuggerProxyClient newOnSindarinDebuggerClient: debuggerClient.
+]
+
+{ #category : #specs }
+RemoteDebuggerPresenter >> constraintsOfButtons [
+	"Defines a common constraint to be used for all buttons"
+	^ [ :cstr | cstr width: 120. cstr height: 20 ]
+	
+]
+
+{ #category : #specs }
+RemoteDebuggerPresenter >> constraintsOfLabels [
+	"Defines a common constraint to be used for all labels"
+	^ [ :cstr | cstr height: 20 ]
+]
+
 { #category : #specs }
 RemoteDebuggerPresenter >> defaultSpec_ [
 	| connectionBoxLayout |
 
 	connectionBoxLayout := SpBoxLayout newVertical
-		add: 'connection box (TODO)';
+		add: 'port' withConstraints: self constraintsOfLabels;
+		add: #portField;
+		"add: #connectButtons withConstraints: self constraintsOfButtons;"
 		yourself.
 
 	^ SpBoxLayout newVertical
@@ -90,6 +108,10 @@ RemoteDebuggerPresenter >> iconManager [
 
 { #category : #initialization }
 RemoteDebuggerPresenter >> initializePresenters [
+	portField := self newNumberInput.
+	portField whenTextIsAcceptedDo: [:port | self connectToDebuggerServerOnPort: port ].
+	"connectButtons := self newButton."
+	
 	
 	stack := self newText.
 	stack text: 'stack'.

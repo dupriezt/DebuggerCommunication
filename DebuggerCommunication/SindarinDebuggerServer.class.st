@@ -52,14 +52,14 @@ SindarinDebuggerServer >> startListeningOnPort: anInt [
 	server := ZnServer startOn: anInt.
 	server
 		onRequestRespond: [ :req | | result serialisation |
-			result := [ self handleRequest: req entity bytes ]
-				on: Error
-				do: [ :e | e resignalAs: Halt ].
-			serialisation := [self serialise: result]
-				on: Error
-				do: [ :e | e resignalAs: Halt ].
-			"self halt."
-			ZnResponse ok: (ZnStringEntity text: serialisation) ]
+			req isPing ifTrue: [ ZnResponse ok: (ZnStringEntity text: 'pong' ) ] ifFalse: [
+				result := [ self handleRequest: req entity bytes ]
+					on: Error
+					do: [ :e | e resignalAs: Halt ].
+				serialisation := [self serialise: result]
+					on: Error
+					do: [ :e | e resignalAs: Halt ].
+				ZnResponse ok: (ZnStringEntity text: serialisation) ]]
 ]
 
 { #category : #public }

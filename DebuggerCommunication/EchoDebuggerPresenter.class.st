@@ -27,13 +27,6 @@ EchoDebuggerPresenter class >> open [
 	(self on: nil "model object, will be used as argument in #setModelBeforeInitialization:") openWithSpec.
 ]
 
-{ #category : #specs }
-EchoDebuggerPresenter >> buttonConstraints [
-	"Defines a common constraint to be used for all buttons"
-	^ [ :cstr | cstr width: 120. cstr height: 20 ]
-	
-]
-
 { #category : #data }
 EchoDebuggerPresenter >> collectionOfPoints [
 	| c |
@@ -65,21 +58,35 @@ EchoDebuggerPresenter >> connectPresenters_old [
 ]
 
 { #category : #specs }
+EchoDebuggerPresenter >> constraintsOfButtons [
+	"Defines a common constraint to be used for all buttons"
+	^ [ :cstr | cstr width: 120. cstr height: 30 ]
+	
+]
+
+{ #category : #specs }
+EchoDebuggerPresenter >> constraintsOfLabels [
+	"Defines a common constraint to be used for all labels"
+	^ [ :cstr | cstr height: 20 ]
+	
+]
+
+{ #category : #specs }
 EchoDebuggerPresenter >> defaultSpec_ [
 
 	| echoDebuggingLayout |
 
 	echoDebuggingLayout := (SpBoxLayout newVertical
-			add: 'Echo Debugging';
+			add: 'Echo Debugging' withConstraints: self constraintsOfLabels;
 			add: (SpBoxLayout newVertical
-				add: 'Status';
+				add: 'Status' withConstraints: self constraintsOfLabels;
 				add: #statusTable;
 				yourself
 			);
 			add: (SpBoxLayout newVertical
-				add: 'Operations';
-				add: #stepToNextDivergenceButton;
-				add: #stepToSenderContextButton;
+				add: 'Operations' withConstraints: self constraintsOfLabels;
+				add: #stepToNextDivergenceButton withConstraints: self constraintsOfButtons;
+				add: #stepToSenderContextButton withConstraints: self constraintsOfButtons;
 				yourself	
 			);
 			yourself
@@ -88,11 +95,11 @@ EchoDebuggerPresenter >> defaultSpec_ [
 	^ SpBoxLayout newHorizontal
 		add: (SpBoxLayout newHorizontal
 			add: (SpBoxLayout newVertical
-				add: 'Working Execution';
+				add: 'Working Execution' withConstraints: self constraintsOfLabels;
 				add: #workingExecutionPresenter;
 				yourself);
 			add: (SpBoxLayout newVertical
-				add: 'Failing Execution';
+				add: 'Failing Execution' withConstraints: self constraintsOfLabels;
 				add: #failingExecutionPresenter;
 				yourself);
 			yourself
@@ -111,8 +118,8 @@ EchoDebuggerPresenter >> defaultSpec_old [
 			yourself
 		);
 		add: (SpBoxLayout newHorizontal
-			add: #inspectButton withConstraints: self buttonConstraints;
-			add: #executeButton withConstraints: self buttonConstraints;
+			add: #inspectButton withConstraints: self constraintsOfButtons;
+			add: #executeButton withConstraints: self constraintsOfButtons;
 			yourself	
 		) withConstraints: [ :cstr | cstr height: 30 ];
 		yourself.

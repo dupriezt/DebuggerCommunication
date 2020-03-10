@@ -10,6 +10,11 @@ NetworkRequest >> executeOn: aDebuggerServer [
 ]
 
 { #category : #accessing }
+NetworkRequest >> isPing [
+	^ false
+]
+
+{ #category : #accessing }
 NetworkRequest >> serialized [
 	^ FLSerializer serializeToByteArray: self.
 ]
