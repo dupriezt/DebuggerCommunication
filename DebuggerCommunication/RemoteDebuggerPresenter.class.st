@@ -13,10 +13,10 @@ Class {
 		'connectButtons',
 		'debuggerClient',
 		'debuggerProxyClient',
-		'node',
 		'refreshButton',
 		'subscribersToDebuggerConnectedEvent',
-		'subscribersToStackTableSelectionChangedEvent'
+		'subscribersToStackTableSelectionChangedEvent',
+		'nodeRepresentation'
 	],
 	#category : #DebuggerCommunication
 }
@@ -42,7 +42,7 @@ RemoteDebuggerPresenter >> buttonAction_inspect [
 		dict at: #debuggerProxyClient put: debuggerProxyClient.
 		dict at: #stack put: self stackTable items.
 		dict at: #context put: (self stackTable selectedItems ifEmpty: [ nil ] ifNotEmpty: [ :array | array at: 1 ]).
-		dict at: #node put: node.
+		dict at: #node put: nodeRepresentation.
 		dict inspect
 	]
 ]
@@ -252,7 +252,7 @@ RemoteDebuggerPresenter >> initializePresenters [
 		valueColumn title: 'value';
 		evaluation: [ :assoc | assoc value ].
 		nodeViewerRawTable addColumn: keyColumn; addColumn: valueColumn.
-		node ifNotNil: [ :node_ | nodeViewerRawTable items: node_ associations ].
+		nodeRepresentation ifNotNil: [ :node_ | nodeViewerRawTable items: node_ associations ].
 		nodeViewerRawTable.
 	].
 	nodeViewerCodePageProvider := [ | nodeViewerCodePresenter |
@@ -354,10 +354,11 @@ RemoteDebuggerPresenter >> stackTableSelectionChangedBlock [
 	^ [ :newSelection |
 		selectedContext := self stackTable items at: newSelection selectedIndex.
 		self contextTable items: selectedContext associations.
-		node := selectedContext at: #node.
+		nodeRepresentation := selectedContext at: #node.
 		(self nodeViewerRawTable) ifNotNil: [:nodeViewerRawTable | nodeViewerRawTable items: (selectedContext at: #node) associations].
-		self nodeViewerCodePresenter text: (node at: #methodSourceCode).
+		self nodeViewerCodePresenter text: (nodeRepresentation at: #methodSourceCode).
 		self nodeViewerCodePresenter behavior: (SmalltalkImage current classNamed: (selectedContext at: #class)).
+		self nodeViewerCodePresenter selectionInterval: ((nodeRepresentation at: #start) to: (nodeRepresentation at: #stop)).
 		self event_sendStackTableSelectionChangedEvent.
 		]
 ]

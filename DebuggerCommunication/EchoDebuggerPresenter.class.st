@@ -28,22 +28,13 @@ EchoDebuggerPresenter class >> open [
 	(self on: nil "model object, will be used as argument in #setModelBeforeInitialization:") openWithSpec.
 ]
 
-{ #category : #data }
-EchoDebuggerPresenter >> collectionOfPoints [
-	| c |
-	c := OrderedCollection new.
-	c add: (Point x: 1 y: 5).
-	c add: (Point x: 48 y: 1).
-	c add: (Point x: 5 y: 6).
-	c add: (Point x: 1 y: 48).
-	c add: (Point x: 3 y: 92).
-	c add: (Point x: 4 y: 67).
-	c add: (Point x: 8 y: 5).
-	c add: (Point x: 16 y: 22).
-	c add: (Point x: 22 y: 21).
-	c add: (Point x: 2 y: 31).
-	c add: (Point x: 43 y: 2).
-	^ c
+{ #category : #initialization }
+EchoDebuggerPresenter >> buttonAction_stepToNextDivergence [
+	^ [ self inform: 'Step to next divergence'.
+		echoDebugger parallelStepUntilDivergence.
+		
+		
+	]
 ]
 
 { #category : #initialization }
@@ -179,7 +170,8 @@ EchoDebuggerPresenter >> initializePresenters [
 	failingExecutionPresenter event_subscribeObjectToStackTableSelectionChangedEvent: self.
 	
 	stepToNextDivergenceButton := self newButton.
-	stepToNextDivergenceButton label: 'Step to next divergence'.
+	stepToNextDivergenceButton label: 'Step to next divergence';
+	action: self buttonAction_stepToNextDivergence.
 	
 	stepToSenderContextButton := self newButton.
 	stepToSenderContextButton label: 'Step to sender context'.
@@ -222,11 +214,6 @@ EchoDebuggerPresenter >> initializeWindow: aWindowPresenter [
 		title: 'EchoDebugger';
 		initialExtent: 1300@800; "initial width@height of the window"
 		windowIcon: (self iconManager iconNamed: #home) "Icon that will be shown in the bottom windowbar for this window"
-]
-
-{ #category : #'button action' }
-EchoDebuggerPresenter >> inspectSelectedItem [
-	pointTable selectedItems inspect.
 ]
 
 { #category : #initialization }
