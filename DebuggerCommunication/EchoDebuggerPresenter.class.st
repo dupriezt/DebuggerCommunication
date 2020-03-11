@@ -11,7 +11,9 @@ Class {
 		'workingExecutionPresenter',
 		'failingExecutionPresenter',
 		'echoDebugger',
-		'statusViewer'
+		'statusViewer',
+		'initialPortWorkingExecution',
+		'initialPortFailingExecution'
 	],
 	#category : #DebuggerCommunication
 }
@@ -28,12 +30,25 @@ EchoDebuggerPresenter class >> open [
 	(self on: nil "model object, will be used as argument in #setModelBeforeInitialization:") openWithSpec.
 ]
 
+{ #category : #specs }
+EchoDebuggerPresenter class >> openOnPort [
+	<script>
+	(self on: {'5007'. '6007'} "model object, will be used as argument in #setModelBeforeInitialization:") openWithSpec.
+]
+
 { #category : #initialization }
 EchoDebuggerPresenter >> buttonAction_stepToNextDivergence [
-	^ [ self inform: 'Step to next divergence'.
-		echoDebugger parallelStepUntilDivergence.
-		
-		
+	^ [ echoDebugger parallelStepUntilDivergence.
+		workingExecutionPresenter refreshExecution.
+		failingExecutionPresenter refreshExecution.
+	]
+]
+
+{ #category : #initialization }
+EchoDebuggerPresenter >> buttonAction_stepToSenderContext [
+	^ [ echoDebugger stepToSenderContext.
+		workingExecutionPresenter refreshExecution.
+		failingExecutionPresenter refreshExecution.
 	]
 ]
 
@@ -75,7 +90,7 @@ EchoDebuggerPresenter >> defaultSpec_ [
 				"add: 'Status' withConstraints: self constraintsOfLabels;"
 				add: #statusViewer withConstraints: [:cstr | cstr height: statusViewerHeight];
 				yourself
-			);
+			) withConstraints: [:cstr | cstr expand: false];
 			add: (SpBoxLayout newVertical
 				add: 'Operations' withConstraints: self constraintsOfLabels;
 				add: #stepToNextDivergenceButton withConstraints: self constraintsOfButtons;
@@ -164,17 +179,22 @@ EchoDebuggerPresenter >> initializePresenters [
 	workingExecutionPresenter := RemoteDebuggerPresenter on: nil.
 	workingExecutionPresenter event_subscribeObjectToDebuggerConnectedEvent: self.
 	workingExecutionPresenter event_subscribeObjectToStackTableSelectionChangedEvent: self.
+	initialPortWorkingExecution ifNotNil: [:port |
+		workingExecutionPresenter whenDisplayDo: [:e | e presenter connectToDebuggerServerOnPort: port ]].
 	
 	failingExecutionPresenter := RemoteDebuggerPresenter on: nil.
 	failingExecutionPresenter event_subscribeObjectToDebuggerConnectedEvent: self.
 	failingExecutionPresenter event_subscribeObjectToStackTableSelectionChangedEvent: self.
+	initialPortFailingExecution  ifNotNil: [:port |
+		failingExecutionPresenter whenDisplayDo: [:e | e presenter connectToDebuggerServerOnPort: port ]].
 	
 	stepToNextDivergenceButton := self newButton.
 	stepToNextDivergenceButton label: 'Step to next divergence';
 	action: self buttonAction_stepToNextDivergence.
 	
 	stepToSenderContextButton := self newButton.
-	stepToSenderContextButton label: 'Step to sender context'.
+	stepToSenderContextButton label: 'Step to sender context';
+	action: self buttonAction_stepToSenderContext.
 ]
 
 { #category : #initialization }
@@ -222,6 +242,8 @@ EchoDebuggerPresenter >> setModelBeforeInitialization: anObject [
 	@anObject is the argument provided to the #on: call. It typically contains all the values to be put into the instance variables"
 	
 	echoDebugger := EchoDebugger new.
+	initialPortWorkingExecution := anObject at: 1.
+	initialPortFailingExecution := anObject at: 2.
 ]
 
 { #category : #initialization }

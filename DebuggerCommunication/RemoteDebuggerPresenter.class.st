@@ -16,7 +16,8 @@ Class {
 		'refreshButton',
 		'subscribersToDebuggerConnectedEvent',
 		'subscribersToStackTableSelectionChangedEvent',
-		'nodeRepresentation'
+		'nodeRepresentation',
+		'restartButton'
 	],
 	#category : #DebuggerCommunication
 }
@@ -53,6 +54,14 @@ RemoteDebuggerPresenter >> buttonAction_refresh [
 ]
 
 { #category : #initialization }
+RemoteDebuggerPresenter >> buttonAction_restart [
+	^ [
+		debuggerProxyClient restart.
+		self refreshExecution.	
+	]
+]
+
+{ #category : #initialization }
 RemoteDebuggerPresenter >> connectPresenters [
 	
 ]
@@ -65,14 +74,15 @@ RemoteDebuggerPresenter >> connectPresenters_old [
 ]
 
 { #category : #initialization }
-RemoteDebuggerPresenter >> connectToDebuggerServerOnPort: anInteger [
-	debuggerClient := SindarinDebuggerClient newOnPort: anInteger.
+RemoteDebuggerPresenter >> connectToDebuggerServerOnPort: aString [
+	portField text: aString.
+	debuggerClient := SindarinDebuggerClient newOnPort: aString.
 	debuggerProxyClient := SindarinDebuggerProxyClient newOnSindarinDebuggerClient: debuggerClient.
 	[(debuggerClient ping) ifTrue: [
-		self inform: 'Connected on port ', anInteger.
+		self inform: 'Connected on port ', aString.
 		self refreshExecution.
 		self event_sendDebuggerConnectedEvent.
-	]] on: ConnectionTimedOut do: [self inform: 'Cannot connect to port ', anInteger].
+	]] on: ConnectionTimedOut do: [self inform: 'Cannot connect to port ', aString].
 
 	
 ]
@@ -120,8 +130,9 @@ RemoteDebuggerPresenter >> defaultSpec_ [
 		add: (SpBoxLayout newVertical
 			add: #inspectButton withConstraints: self constraintsOfButtons;
 			add: #refreshButton withConstraints: self constraintsOfButtons;
+			add: #restartButton withConstraints: self constraintsOfButtons;
 			yourself
-		) withConstraints: [:cstr | cstr height: 2 * 30];
+		) withConstraints: [:cstr | cstr height: 3 * 30];
 		"add: (SpBoxLayout newVertical
 			add: (SpGridLayout new
 				add: #inspectButton at: 1@1;
@@ -207,6 +218,10 @@ RemoteDebuggerPresenter >> initializePresenters [
 	refreshButton := self newButton.
 	refreshButton label: 'Refresh';
 	action: self buttonAction_refresh.	
+		
+	restartButton := self newButton.
+	restartButton label: 'Restart';
+	action: self buttonAction_restart.
 		
 	stackPresenterProvider := [ |stackTable classColumn selectorColumn|
 		stackTable := self newTable.
