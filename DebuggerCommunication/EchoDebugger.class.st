@@ -9,6 +9,11 @@ Class {
 }
 
 { #category : #testing }
+EchoDebugger >> isBothDebuggersConnected [
+	^ proxyClientForFailingExec isNotNil & proxyClientForWorkingExec isNotNil
+]
+
+{ #category : #testing }
 EchoDebugger >> isOnSameNode [
 	^ proxyClientForWorkingExec node = proxyClientForFailingExec node
 ]

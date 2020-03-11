@@ -6,11 +6,12 @@ Class {
 		'textField',
 		'executeButton',
 		'inspectButton',
-		'statusTable',
 		'stepToNextDivergenceButton',
 		'stepToSenderContextButton',
 		'workingExecutionPresenter',
-		'failingExecutionPresenter'
+		'failingExecutionPresenter',
+		'echoDebugger',
+		'statusViewer'
 	],
 	#category : #DebuggerCommunication
 }
@@ -74,13 +75,14 @@ EchoDebuggerPresenter >> constraintsOfLabels [
 { #category : #specs }
 EchoDebuggerPresenter >> defaultSpec_ [
 
-	| echoDebuggingLayout |
-
+	| echoDebuggingLayout statusViewerHeight |
+	statusViewerHeight := 150.
+	
 	echoDebuggingLayout := (SpBoxLayout newVertical
 			add: 'Echo Debugging' withConstraints: self constraintsOfLabels;
 			add: (SpBoxLayout newVertical
-				add: 'Status' withConstraints: self constraintsOfLabels;
-				add: #statusTable;
+				"add: 'Status' withConstraints: self constraintsOfLabels;"
+				add: #statusViewer withConstraints: [:cstr | cstr height: statusViewerHeight];
 				yourself
 			);
 			add: (SpBoxLayout newVertical
@@ -125,8 +127,20 @@ EchoDebuggerPresenter >> defaultSpec_old [
 		yourself.
 ]
 
-{ #category : #'button action' }
-EchoDebuggerPresenter >> executeCode [
+{ #category : #initialization }
+EchoDebuggerPresenter >> event_receiveDebuggerConnected: informationDictionary [
+	| eventSender |
+	eventSender := informationDictionary at: #eventSender.
+	(eventSender = workingExecutionPresenter) ifTrue: [ echoDebugger proxyClientForWorkingExec: eventSender debuggerProxyClient ].
+	(eventSender = failingExecutionPresenter ) ifTrue: [ echoDebugger proxyClientForFailingExec: eventSender debuggerProxyClient ].
+	
+	echoDebugger isBothDebuggersConnected ifTrue: [ self whenBothDebuggersConnected ].
+	
+]
+
+{ #category : #initialization }
+EchoDebuggerPresenter >> event_receiveStackTableSelectionChanged: informationDictionary [
+	self updateStatusTable 
 ]
 
 { #category : #icon }
@@ -139,12 +153,30 @@ EchoDebuggerPresenter >> iconManager [
 { #category : #initialization }
 EchoDebuggerPresenter >> initializePresenters [
 		
-	statusTable := self newText.
-	statusTable text: 'Status Table'.
+	| statusViewerPageProvider statusViewerPage |
+	statusViewerPageProvider := [ | statusTable keyColumn valueColumn |
+		statusTable := self newTable.
+		keyColumn := SpStringTableColumn new.
+		keyColumn "title: 'key';"
+		evaluation: [ :assoc | assoc key ];
+		width: 60.
+		valueColumn := SpStringTableColumn new.
+		valueColumn "title: 'value';"
+		evaluation: [ :assoc | assoc value ].
+		statusTable addColumn: keyColumn; addColumn: valueColumn.
+		statusTable.	
+	].
+	statusViewerPage := SpNotebookPage title: 'status' provider: statusViewerPageProvider.
+	statusViewer := self newNotebook.
+	statusViewer addPage: statusViewerPage.
 	
-	workingExecutionPresenter := RemoteDebuggerPresenter new.
+	workingExecutionPresenter := RemoteDebuggerPresenter on: nil.
+	workingExecutionPresenter event_subscribeObjectToDebuggerConnectedEvent: self.
+	workingExecutionPresenter event_subscribeObjectToStackTableSelectionChangedEvent: self.
 	
-	failingExecutionPresenter := RemoteDebuggerPresenter new.
+	failingExecutionPresenter := RemoteDebuggerPresenter on: nil.
+	failingExecutionPresenter event_subscribeObjectToDebuggerConnectedEvent: self.
+	failingExecutionPresenter event_subscribeObjectToStackTableSelectionChangedEvent: self.
 	
 	stepToNextDivergenceButton := self newButton.
 	stepToNextDivergenceButton label: 'Step to next divergence'.
@@ -202,5 +234,25 @@ EchoDebuggerPresenter >> setModelBeforeInitialization: anObject [
 	"This method is called before the initialisation methods (like #initializePresenters), when this presenter instance is created by sending #on: to its class. It is typically used to fill the instance variables of this presenter instance before the initilisation methods get called.
 	@anObject is the argument provided to the #on: call. It typically contains all the values to be put into the instance variables"
 	
-	"instanceVariable1 := anObject getValueForInstanceVariable1"
+	echoDebugger := EchoDebugger new.
+]
+
+{ #category : #initialization }
+EchoDebuggerPresenter >> statusTable [
+	^ (statusViewer pageAt: 1) activePresenter.
+]
+
+{ #category : #initialization }
+EchoDebuggerPresenter >> updateStatusTable [
+	| items |
+	echoDebugger isBothDebuggersConnected ifFalse: [^self].
+	items := Dictionary new.
+	items at: #'Node =?' put: workingExecutionPresenter selectedNode = failingExecutionPresenter selectedNode.
+	items at: #'Context =?' put: workingExecutionPresenter selectedContext = failingExecutionPresenter selectedContext.
+	self statusTable items: items associations.
+]
+
+{ #category : #initialization }
+EchoDebuggerPresenter >> whenBothDebuggersConnected [
+	self updateStatusTable.
 ]

@@ -14,7 +14,9 @@ Class {
 		'debuggerClient',
 		'debuggerProxyClient',
 		'node',
-		'refreshButton'
+		'refreshButton',
+		'subscribersToDebuggerConnectedEvent',
+		'subscribersToStackTableSelectionChangedEvent'
 	],
 	#category : #DebuggerCommunication
 }
@@ -50,24 +52,6 @@ RemoteDebuggerPresenter >> buttonAction_refresh [
 	^ [ self refreshExecution ]
 ]
 
-{ #category : #data }
-RemoteDebuggerPresenter >> collectionOfPoints [
-	| c |
-	c := OrderedCollection new.
-	c add: (Point x: 1 y: 5).
-	c add: (Point x: 48 y: 1).
-	c add: (Point x: 5 y: 6).
-	c add: (Point x: 1 y: 48).
-	c add: (Point x: 3 y: 92).
-	c add: (Point x: 4 y: 67).
-	c add: (Point x: 8 y: 5).
-	c add: (Point x: 16 y: 22).
-	c add: (Point x: 22 y: 21).
-	c add: (Point x: 2 y: 31).
-	c add: (Point x: 43 y: 2).
-	^ c
-]
-
 { #category : #initialization }
 RemoteDebuggerPresenter >> connectPresenters [
 	
@@ -87,6 +71,7 @@ RemoteDebuggerPresenter >> connectToDebuggerServerOnPort: anInteger [
 	[(debuggerClient ping) ifTrue: [
 		self inform: 'Connected on port ', anInteger.
 		self refreshExecution.
+		self event_sendDebuggerConnectedEvent.
 	]] on: ConnectionTimedOut do: [self inform: 'Cannot connect to port ', anInteger].
 
 	
@@ -108,6 +93,16 @@ RemoteDebuggerPresenter >> constraintsOfLabels [
 { #category : #initialization }
 RemoteDebuggerPresenter >> contextTable [
 	^ (contextInspector pageAt: 1) activePresenter
+]
+
+{ #category : #accessing }
+RemoteDebuggerPresenter >> debuggerClient [
+	^ debuggerClient
+]
+
+{ #category : #accessing }
+RemoteDebuggerPresenter >> debuggerProxyClient [
+	^ debuggerProxyClient
 ]
 
 { #category : #specs }
@@ -148,6 +143,43 @@ RemoteDebuggerPresenter >> defaultSpec_ [
 		add: #contextInspector;
 		add: #nodeViewer;
 		yourself
+]
+
+{ #category : #initialization }
+RemoteDebuggerPresenter >> event_sendDebuggerConnectedEvent [
+	| information |
+	information := Dictionary new.
+	information at: #eventSender put: self.
+	subscribersToDebuggerConnectedEvent do: [ :subscriber | subscriber event_receiveDebuggerConnected: information ]
+]
+
+{ #category : #initialization }
+RemoteDebuggerPresenter >> event_sendStackTableSelectionChangedEvent [
+	| information |
+	information := Dictionary new.
+	information at: #eventSender put: self.
+	information at: #selectedItem put: self selectedContext.
+	subscribersToStackTableSelectionChangedEvent do: [ :subscriber | subscriber event_receiveStackTableSelectionChanged: information ]
+]
+
+{ #category : #initialization }
+RemoteDebuggerPresenter >> event_subscribeObjectToDebuggerConnectedEvent: anObject [
+	subscribersToDebuggerConnectedEvent add: anObject
+]
+
+{ #category : #initialization }
+RemoteDebuggerPresenter >> event_subscribeObjectToStackTableSelectionChangedEvent: anObject [
+	subscribersToStackTableSelectionChangedEvent add: anObject
+]
+
+{ #category : #initialization }
+RemoteDebuggerPresenter >> event_unsubscribeObjectToDebuggerConnectedEvent: anObject [
+	subscribersToDebuggerConnectedEvent remove: anObject
+]
+
+{ #category : #initialization }
+RemoteDebuggerPresenter >> event_unsubscribeObjectToStackTableSelectionChangedEvent: anObject [
+	subscribersToStackTableSelectionChangedEvent remove: anObject
 ]
 
 { #category : #'button action' }
@@ -275,11 +307,6 @@ RemoteDebuggerPresenter >> initializeWindow: aWindowPresenter [
 		windowIcon: (self iconManager iconNamed: #home). "Icon that will be shown in the bottom windowbar for this window"
 ]
 
-{ #category : #'button action' }
-RemoteDebuggerPresenter >> inspectSelectedItem [
-	pointTable selectedItems inspect.
-]
-
 { #category : #initialization }
 RemoteDebuggerPresenter >> nodeViewerCodePresenter [
 	^ (nodeViewer pageAt: 1) activePresenter
@@ -297,11 +324,23 @@ RemoteDebuggerPresenter >> refreshExecution [
 ]
 
 { #category : #initialization }
+RemoteDebuggerPresenter >> selectedContext [
+	^ self stackTable selectedItems ifEmpty: [ nil ] ifNotEmpty: [ :array | array at: 1 ]
+]
+
+{ #category : #initialization }
+RemoteDebuggerPresenter >> selectedNode [
+	^ self stackTable selectedItems ifEmpty: [ nil ] ifNotEmpty: [ :array | (array at: 1) at: #node]
+]
+
+{ #category : #initialization }
 RemoteDebuggerPresenter >> setModelBeforeInitialization: anObject [
 	"This method is called before the initialisation methods (like #initializePresenters), when this presenter instance is created by sending #on: to its class. It is typically used to fill the instance variables of this presenter instance before the initilisation methods get called.
 	@anObject is the argument provided to the #on: call. It typically contains all the values to be put into the instance variables"
 	
 	"instanceVariable1 := anObject getValueForInstanceVariable1"
+	subscribersToDebuggerConnectedEvent := OrderedCollection new.
+	subscribersToStackTableSelectionChangedEvent := OrderedCollection new.
 ]
 
 { #category : #initialization }
@@ -319,5 +358,6 @@ RemoteDebuggerPresenter >> stackTableSelectionChangedBlock [
 		(self nodeViewerRawTable) ifNotNil: [:nodeViewerRawTable | nodeViewerRawTable items: (selectedContext at: #node) associations].
 		self nodeViewerCodePresenter text: (node at: #methodSourceCode).
 		self nodeViewerCodePresenter behavior: (SmalltalkImage current classNamed: (selectedContext at: #class)).
+		self event_sendStackTableSelectionChangedEvent.
 		]
 ]
