@@ -116,7 +116,8 @@ EchoDebugger >> proxyClientForWorkingExec: anObject [
 { #category : #operation }
 EchoDebugger >> stepFailingExec [
 
-	proxyClientForFailingExec step
+"	proxyClientForFailingExec step."
+	proxyClientForFailingExec stepBytecode.
 ]
 
 { #category : #operation }
@@ -161,5 +162,6 @@ EchoDebugger >> stepToSenderContextUntilConvergence [
 { #category : #operation }
 EchoDebugger >> stepWorkingExec [
 	
-	proxyClientForWorkingExec step
+"	proxyClientForWorkingExec step"
+	proxyClientForWorkingExec stepBytecode
 ]
