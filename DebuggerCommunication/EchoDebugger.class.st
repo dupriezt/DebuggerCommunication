@@ -116,16 +116,27 @@ EchoDebugger >> proxyClientForWorkingExec: anObject [
 { #category : #operation }
 EchoDebugger >> stepFailingExec [
 
-"	proxyClientForFailingExec step."
-	proxyClientForFailingExec stepBytecode.
+	proxyClientForFailingExec step
 ]
 
 { #category : #operation }
 EchoDebugger >> stepToSenderContext [
 	"Step both executions until the size of their context stack is one less than currently. Return a dictionary containing the nodes stepped by each execution, and whether they ended up on the same node"
-	| result stackSizeGoal_working stackSizeGoal_failing |
-	stackSizeGoal_working := proxyClientForWorkingExec stack size - 1.
-	stackSizeGoal_failing := proxyClientForWorkingExec stack size - 1.
+	| result stackSizeGoal_working stackSizeGoal_failing workingStackSize failingStackSize |
+	workingStackSize := proxyClientForWorkingExec stack size.
+	failingStackSize := proxyClientForFailingExec stack size.
+	(workingStackSize = failingStackSize) ifTrue: [ 
+		stackSizeGoal_working := workingStackSize - 1.
+		stackSizeGoal_failing := stackSizeGoal_working.
+	] ifFalse: [ 
+		(workingStackSize < failingStackSize) ifTrue: [ 
+			stackSizeGoal_working := workingStackSize.
+			stackSizeGoal_failing := failingStackSize - 1.
+		] ifFalse: [ "workingStackSize > failingStackSize"
+			stackSizeGoal_working := workingStackSize - 1.
+			stackSizeGoal_failing := failingStackSize.
+		]
+	].
 	(stackSizeGoal_working = 0 or: [ stackSizeGoal_failing = 0 ]) ifTrue: [ self error: 'Trying to step until context stack is empty' ].
 	result := Dictionary new.
 	
@@ -161,7 +172,6 @@ EchoDebugger >> stepToSenderContextUntilConvergence [
 
 { #category : #operation }
 EchoDebugger >> stepWorkingExec [
-	
-"	proxyClientForWorkingExec step"
-	proxyClientForWorkingExec stepBytecode
+
+	proxyClientForWorkingExec step
 ]
