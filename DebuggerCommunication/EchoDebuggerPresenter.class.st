@@ -13,7 +13,11 @@ Class {
 		'echoDebugger',
 		'statusViewer',
 		'initialPortWorkingExecution',
-		'initialPortFailingExecution'
+		'initialPortFailingExecution',
+		'analyzeExecutionButton',
+		'dataViewer',
+		'stepToSenderContextUntilConvergenceButton',
+		'inspectEchoDebuggerButton'
 	],
 	#category : #DebuggerCommunication
 }
@@ -37,6 +41,21 @@ EchoDebuggerPresenter class >> openOnPort [
 ]
 
 { #category : #initialization }
+EchoDebuggerPresenter >> buttonAction_analyzeExecutionButton [
+	^ [ echoDebugger analyzeExecution.
+		workingExecutionPresenter refreshExecution.
+		failingExecutionPresenter refreshExecution.
+		self updateDataTable.
+	]
+]
+
+{ #category : #initialization }
+EchoDebuggerPresenter >> buttonAction_inspectEchoDebugger [
+	^ [ echoDebugger inspect
+	]
+]
+
+{ #category : #initialization }
 EchoDebuggerPresenter >> buttonAction_stepToNextDivergence [
 	^ [ echoDebugger parallelStepUntilDivergence.
 		workingExecutionPresenter refreshExecution.
@@ -47,6 +66,14 @@ EchoDebuggerPresenter >> buttonAction_stepToNextDivergence [
 { #category : #initialization }
 EchoDebuggerPresenter >> buttonAction_stepToSenderContext [
 	^ [ echoDebugger stepToSenderContext.
+		workingExecutionPresenter refreshExecution.
+		failingExecutionPresenter refreshExecution.
+	]
+]
+
+{ #category : #initialization }
+EchoDebuggerPresenter >> buttonAction_stepToSenderUntilConvergence [
+	^ [ echoDebugger stepToSenderContextUntilConvergence.
 		workingExecutionPresenter refreshExecution.
 		failingExecutionPresenter refreshExecution.
 	]
@@ -78,6 +105,11 @@ EchoDebuggerPresenter >> constraintsOfLabels [
 	
 ]
 
+{ #category : #initialization }
+EchoDebuggerPresenter >> dataTable [
+	^ (dataViewer pageAt: 1) activePresenter.
+]
+
 { #category : #specs }
 EchoDebuggerPresenter >> defaultSpec_ [
 
@@ -95,7 +127,15 @@ EchoDebuggerPresenter >> defaultSpec_ [
 				add: 'Operations' withConstraints: self constraintsOfLabels;
 				add: #stepToNextDivergenceButton withConstraints: self constraintsOfButtons;
 				add: #stepToSenderContextButton withConstraints: self constraintsOfButtons;
+				add: #stepToSenderContextUntilConvergenceButton withConstraints: self constraintsOfButtons;
+				add: #analyzeExecutionButton withConstraints: self constraintsOfButtons;
+				add: #inspectEchoDebuggerButton withConstraints: self constraintsOfButtons;
 				yourself	
+			) withConstraints: [:cstr | cstr height: 30 * 6];
+			add: (SpBoxLayout newVertical
+				add: 'Navigation' withConstraints: self constraintsOfLabels;
+				add: #dataViewer;
+				yourself
 			);
 			yourself
 		).
@@ -159,7 +199,7 @@ EchoDebuggerPresenter >> iconManager [
 { #category : #initialization }
 EchoDebuggerPresenter >> initializePresenters [
 		
-	| statusViewerPageProvider statusViewerPage |
+	| statusViewerPageProvider statusViewerPage dataViewerPageProvider dataViewerPage |
 	statusViewerPageProvider := [ | statusTable keyColumn valueColumn |
 		statusTable := self newTable.
 		keyColumn := SpStringTableColumn new.
@@ -195,6 +235,56 @@ EchoDebuggerPresenter >> initializePresenters [
 	stepToSenderContextButton := self newButton.
 	stepToSenderContextButton label: 'Step to sender context';
 	action: self buttonAction_stepToSenderContext.
+	
+	analyzeExecutionButton := self newButton.
+	analyzeExecutionButton label: 'Analyze execution';
+	action: self buttonAction_analyzeExecutionButton.
+	
+	stepToSenderContextUntilConvergenceButton := self newButton.
+	stepToSenderContextUntilConvergenceButton label: 'Step to sender until convergence';
+	action: self buttonAction_stepToSenderUntilConvergence.
+	
+	inspectEchoDebuggerButton := self newButton.
+	inspectEchoDebuggerButton label: 'Inspect Echo Debugger';
+	action: self buttonAction_inspectEchoDebugger.
+	
+	statusViewerPageProvider := [ | statusTable keyColumn valueColumn |
+		statusTable := self newTable.
+		keyColumn := SpStringTableColumn new.
+		keyColumn "title: 'key';"
+		evaluation: [ :assoc | assoc key ];
+		width: 60.
+		valueColumn := SpStringTableColumn new.
+		valueColumn "title: 'value';"
+		evaluation: [ :assoc | assoc value ].
+		statusTable addColumn: keyColumn; addColumn: valueColumn.
+		statusTable.	
+	].
+	statusViewerPage := SpNotebookPage title: 'status' provider: statusViewerPageProvider.
+	statusViewer := self newNotebook.
+	statusViewer addPage: statusViewerPage.
+
+
+	dataViewerPageProvider := [ |dataTable natureColumn indexWorkingColumn indexFailingColumn|
+		dataTable := self newTable.
+		natureColumn := SpStringTableColumn new.
+		natureColumn title: 'Nature';
+		evaluation: [ :event | event nature ].
+		indexWorkingColumn := SpStringTableColumn new.
+		indexWorkingColumn title: 'W Step Index';
+		evaluation: [ :event | event index_working ].
+		indexFailingColumn := SpStringTableColumn new.
+		indexFailingColumn title: 'F Step Index';
+		evaluation: [ :event | event index_failing ].
+		
+		dataTable addColumn: natureColumn;
+		addColumn: indexWorkingColumn;
+		addColumn: indexFailingColumn.
+		dataTable items: echoDebugger data
+	].
+	dataViewerPage := SpNotebookPage title: 'data' provider: dataViewerPageProvider.
+	dataViewer := self newNotebook.
+	dataViewer addPage: dataViewerPage.
 ]
 
 { #category : #initialization }
@@ -249,6 +339,12 @@ EchoDebuggerPresenter >> setModelBeforeInitialization: anObject [
 { #category : #initialization }
 EchoDebuggerPresenter >> statusTable [
 	^ (statusViewer pageAt: 1) activePresenter.
+]
+
+{ #category : #initialization }
+EchoDebuggerPresenter >> updateDataTable [
+	echoDebugger isBothDebuggersConnected ifFalse: [^self].
+	self dataTable items: echoDebugger data.
 ]
 
 { #category : #initialization }
