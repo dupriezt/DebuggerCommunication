@@ -54,3 +54,13 @@ EchoDebuggerDataEvent >> nodes_working [
 EchoDebuggerDataEvent >> nodes_working: anObject [
 	nodes_working := anObject
 ]
+
+{ #category : #printing }
+EchoDebuggerDataEvent >> printOn: aStream [
+	super printOn: aStream.
+	aStream nextPutAll: ' ('.
+	aStream nextPutAll: self index_working asString.
+	aStream nextPutAll: ', '.
+	aStream nextPutAll: self index_failing asString.
+	aStream nextPutAll: ')'.
+]

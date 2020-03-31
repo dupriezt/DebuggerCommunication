@@ -17,7 +17,8 @@ Class {
 		'analyzeExecutionButton',
 		'dataViewer',
 		'stepToSenderContextUntilConvergenceButton',
-		'inspectEchoDebuggerButton'
+		'inspectEchoDebuggerButton',
+		'restartEchoDebuggingButton'
 	],
 	#category : #DebuggerCommunication
 }
@@ -52,6 +53,15 @@ EchoDebuggerPresenter >> buttonAction_analyzeExecutionButton [
 { #category : #initialization }
 EchoDebuggerPresenter >> buttonAction_inspectEchoDebugger [
 	^ [ echoDebugger inspect
+	]
+]
+
+{ #category : #initialization }
+EchoDebuggerPresenter >> buttonAction_resetEchoDebugging [
+	^ [ echoDebugger resetData.
+		self updateDataTable.
+		workingExecutionPresenter restartExecution.
+		failingExecutionPresenter restartExecution.
 	]
 ]
 
@@ -126,9 +136,10 @@ EchoDebuggerPresenter >> defaultSpec_ [
 			add: (SpBoxLayout newVertical
 				add: 'Operations' withConstraints: self constraintsOfLabels;
 				add: #stepToNextDivergenceButton withConstraints: self constraintsOfButtons;
-				add: #stepToSenderContextButton withConstraints: self constraintsOfButtons;
+				"add: #stepToSenderContextButton withConstraints: self constraintsOfButtons;"
 				add: #stepToSenderContextUntilConvergenceButton withConstraints: self constraintsOfButtons;
 				add: #analyzeExecutionButton withConstraints: self constraintsOfButtons;
+				add: #restartEchoDebuggingButton withConstraints: self constraintsOfButtons;
 				add: #inspectEchoDebuggerButton withConstraints: self constraintsOfButtons;
 				yourself	
 			) withConstraints: [:cstr | cstr height: 30 * 6];
@@ -243,6 +254,10 @@ EchoDebuggerPresenter >> initializePresenters [
 	stepToSenderContextUntilConvergenceButton := self newButton.
 	stepToSenderContextUntilConvergenceButton label: 'Step to sender until convergence';
 	action: self buttonAction_stepToSenderUntilConvergence.
+	
+	restartEchoDebuggingButton := self newButton.
+	restartEchoDebuggingButton label: 'Reset Echo Debugging';
+	action: self buttonAction_resetEchoDebugging.
 	
 	inspectEchoDebuggerButton := self newButton.
 	inspectEchoDebuggerButton label: 'Inspect Echo Debugger';

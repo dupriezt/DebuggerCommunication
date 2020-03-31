@@ -58,11 +58,7 @@ EchoDebugger >> eitherExecutionIsFinished [
 
 { #category : #initialization }
 EchoDebugger >> initialize [
-	| conv |
-	data := EchoDebuggerData new.
-	conv := ConvergenceEvent new.
-	conv index_working: 0; index_failing: 0; nodes_working: OrderedCollection new; nodes_failing: OrderedCollection new.
-	data add: conv.
+	self resetData
 ]
 
 { #category : #testing }
@@ -111,6 +107,15 @@ EchoDebugger >> proxyClientForWorkingExec [
 { #category : #accessing }
 EchoDebugger >> proxyClientForWorkingExec: anObject [
 	proxyClientForWorkingExec := anObject
+]
+
+{ #category : #initialization }
+EchoDebugger >> resetData [
+	| conv |
+	data := EchoDebuggerData new.
+	conv := ConvergenceEvent new.
+	conv index_working: 0; index_failing: 0; nodes_working: OrderedCollection new; nodes_failing: OrderedCollection new.
+	data add: conv.
 ]
 
 { #category : #operation }

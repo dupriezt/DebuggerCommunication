@@ -56,8 +56,7 @@ RemoteDebuggerPresenter >> buttonAction_refresh [
 { #category : #initialization }
 RemoteDebuggerPresenter >> buttonAction_restart [
 	^ [
-		debuggerProxyClient restart.
-		self refreshExecution.	
+		self restartExecution	
 	]
 ]
 
@@ -130,9 +129,9 @@ RemoteDebuggerPresenter >> defaultSpec_ [
 		add: (SpBoxLayout newVertical
 			add: #inspectButton withConstraints: self constraintsOfButtons;
 			add: #refreshButton withConstraints: self constraintsOfButtons;
-			add: #restartButton withConstraints: self constraintsOfButtons;
+			"add: #restartButton withConstraints: self constraintsOfButtons;"
 			yourself
-		) withConstraints: [:cstr | cstr height: 3 * 30];
+		) withConstraints: [:cstr | cstr height: 2 * 30];
 		"add: (SpBoxLayout newVertical
 			add: (SpGridLayout new
 				add: #inspectButton at: 1@1;
@@ -336,6 +335,12 @@ RemoteDebuggerPresenter >> nodeViewerRawTable [
 RemoteDebuggerPresenter >> refreshExecution [
 	self stackTable items: debuggerProxyClient stack.
 	self stackTable selectIndex: 1.
+]
+
+{ #category : #initialization }
+RemoteDebuggerPresenter >> restartExecution [
+	debuggerProxyClient restart.
+	self refreshExecution.
 ]
 
 { #category : #initialization }
