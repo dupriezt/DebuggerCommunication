@@ -17,7 +17,14 @@ DebuggerCommunicationTest >> areExecutionsAtTheSamePoint [
 ]
 
 { #category : #tests }
-DebuggerCommunicationTest >> execBlock_PointCreation [
+DebuggerCommunicationTest >> execBlock_failingTest [
+	| testInstance |
+	testInstance := FailingTestForDebuggerCommunication new.
+	^ [ testInstance testFails ].
+]
+
+{ #category : #tests }
+DebuggerCommunicationTest >> execBlock_pointCreation [
 	^ [ Point x: 1 y: 2 ]
 ]
 
@@ -59,7 +66,7 @@ DebuggerCommunicationTest >> tearDown [
 { #category : #tests }
 DebuggerCommunicationTest >> testExecutionIsFinished [
 	"Tests that the end of the execution is correctly detected by the remote execution"
-	self setUpOnBlock: self execBlock_PointCreation.
+	self setUpOnBlock: self execBlock_pointCreation.
 	
 	[dbgl isExecutionFinished | dbgp isExecutionFinished ] whileFalse: [ 
 		dbgl step.
@@ -73,9 +80,21 @@ DebuggerCommunicationTest >> testExecutionIsFinished [
 ]
 
 { #category : #tests }
+DebuggerCommunicationTest >> testRemoteExecutionSignalsTestFailure [
+
+	| nodes |
+	self setUpOnBlock: self execBlock_failingTest.
+	
+	nodes := OrderedCollection new.
+	[ dbgp isExecutionFinished ] whileFalse: [ nodes add: dbgp node. dbgp step ].
+
+	
+]
+
+{ #category : #tests }
 DebuggerCommunicationTest >> testSameAfterStep [
 	"Tests that after a step, the local and remotely-controlled execution are at the same point"
-	self setUpOnBlock: self execBlock_PointCreation.
+	self setUpOnBlock: self execBlock_pointCreation.
 	
 	dbgl step.
 	dbgp step.
@@ -85,7 +104,7 @@ DebuggerCommunicationTest >> testSameAfterStep [
 { #category : #tests }
 DebuggerCommunicationTest >> testSameStart [
 	"Test that both the local and remotely-controlled execution start at the same point"
-	self setUpOnBlock: self execBlock_PointCreation.
+	self setUpOnBlock: self execBlock_pointCreation.
 	
 	self assert: self areExecutionsAtTheSamePoint.
 ]
@@ -93,7 +112,7 @@ DebuggerCommunicationTest >> testSameStart [
 { #category : #tests }
 DebuggerCommunicationTest >> testSerialiseASTNode [
 	| astNodeRepresentation |
-	self setUpOnBlock: self execBlock_PointCreation.
+	self setUpOnBlock: self execBlock_pointCreation.
 	
 	astNodeRepresentation := dbgc sendRequest: TestRequestReturnASTNode new.
 	self assert: (astNodeRepresentation at: #source) equals: 'self myMessage: 25'.
@@ -110,7 +129,7 @@ DebuggerCommunicationTest >> testSerialiseASTNode [
 DebuggerCommunicationTest >> testSerialiseBlockClosure [
 	| blockClosure |
 	"Serialising a BlockClosure does not work at the moment"
-	self setUpOnBlock: self execBlock_PointCreation.	
+	self setUpOnBlock: self execBlock_pointCreation.	
 	
 	blockClosure := dbgc sendRequest: TestRequestReturnBlockClosure new.
 	self assert: blockClosure value equals: 42.
@@ -119,7 +138,7 @@ DebuggerCommunicationTest >> testSerialiseBlockClosure [
 { #category : #tests }
 DebuggerCommunicationTest >> testSerialiseContext [
 	| contextRepresentation nodeRepresentation selectorOfMethodContainingBlockToDebug |
-	selectorOfMethodContainingBlockToDebug := #execBlock_PointCreation.
+	selectorOfMethodContainingBlockToDebug := #execBlock_pointCreation.
 	self setUpOnBlock: (self perform: selectorOfMethodContainingBlockToDebug).
 	
 	contextRepresentation := dbgc sendRequest: TestRequestReturnContext new.
@@ -133,7 +152,7 @@ DebuggerCommunicationTest >> testSerialiseContext [
 
 { #category : #tests }
 DebuggerCommunicationTest >> testSerialiseInteger [
-	self setUpOnBlock: self execBlock_PointCreation.
+	self setUpOnBlock: self execBlock_pointCreation.
 
 	self assert: (dbgc sendRequest: TestRequestReturnFive new) equals: 5.
 ]
