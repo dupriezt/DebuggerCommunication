@@ -35,7 +35,7 @@ DebuggerCommunicationTest >> setUp [
 { #category : #'as yet unclassified' }
 DebuggerCommunicationTest >> setUpOnBlock: aBlock [
 	| port |
-	port := 8248.
+	port := 8249.
 	
 	"Debugger on the local execution"
 	dbgl := SindarinDebugger debug: aBlock.
@@ -66,6 +66,7 @@ DebuggerCommunicationTest >> testExecutionIsFinished [
 		dbgp step
 	].
 	"If one execution finished, both must have finished"
+	"This assertion fails because both execution arrived on the call to ProcessorScheduler>>#terminateActive, but the remote execution has a step hook to finish that call in one go, so it finishes it without the local execution doing any step. After that, the remote execution answer true to #isExecutionFinished, but not the local one"
 	self assert: dbgl isExecutionFinished & dbgp isExecutionFinished.
 	self assert: self areExecutionsAtTheSamePoint.
 	
