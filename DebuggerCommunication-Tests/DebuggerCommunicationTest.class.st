@@ -17,21 +17,25 @@ DebuggerCommunicationTest >> areExecutionsAtTheSamePoint [
 ]
 
 { #category : #tests }
-DebuggerCommunicationTest >> blockToDebug [
+DebuggerCommunicationTest >> execBlock_PointCreation [
 	^ [ Point x: 1 y: 2 ]
 ]
 
 { #category : #running }
 DebuggerCommunicationTest >> setUp [
 	"Hooks that subclasses may override to define the fixture of test."
+]
+
+{ #category : #'as yet unclassified' }
+DebuggerCommunicationTest >> setUpOnBlock: aBlock [
 	| port |
 	port := 8248.
 	
 	"Debugger on the local execution"
-	dbgl := SindarinDebugger debug: self blockToDebug.
+	dbgl := SindarinDebugger debug: aBlock.
 	
 	"Debugger on the remotely-controlled execution"
-	dbg := SindarinDebugger debug: self blockToDebug.
+	dbg := SindarinDebugger debug: aBlock.
 	dbgServer := SindarinDebuggerServer newOnSindarinDebugger: dbg.
 	dbgServer startListeningOnPort: port.
 	
@@ -49,6 +53,8 @@ DebuggerCommunicationTest >> tearDown [
 { #category : #tests }
 DebuggerCommunicationTest >> testExecutionIsFinished [
 	"Tests that the end of the execution is correctly detected by the remote execution"
+	self setUpOnBlock: self execBlock_PointCreation.
+	
 	[dbgl isExecutionFinished | dbgp isExecutionFinished ] whileFalse: [ 
 		dbgl step.
 		dbgp step
@@ -62,6 +68,8 @@ DebuggerCommunicationTest >> testExecutionIsFinished [
 { #category : #tests }
 DebuggerCommunicationTest >> testSameAfterStep [
 	"Tests that after a step, the local and remotely-controlled execution are at the same point"
+	self setUpOnBlock: self execBlock_PointCreation.
+	
 	dbgl step.
 	dbgp step.
 	self assert: self areExecutionsAtTheSamePoint
@@ -70,12 +78,16 @@ DebuggerCommunicationTest >> testSameAfterStep [
 { #category : #tests }
 DebuggerCommunicationTest >> testSameStart [
 	"Test that both the local and remotely-controlled execution start at the same point"
+	self setUpOnBlock: self execBlock_PointCreation.
+	
 	self assert: self areExecutionsAtTheSamePoint.
 ]
 
 { #category : #tests }
 DebuggerCommunicationTest >> testSerialiseASTNode [
 	| astNodeRepresentation |
+	self setUpOnBlock: self execBlock_PointCreation.
+	
 	astNodeRepresentation := dbgc sendRequest: TestRequestReturnASTNode new.
 	self assert: (astNodeRepresentation at: #source) equals: 'self myMessage: 25'.
 	self assert: (astNodeRepresentation at: #class) equals: 'TestRequestReturnASTNode'.
@@ -91,18 +103,22 @@ DebuggerCommunicationTest >> testSerialiseASTNode [
 DebuggerCommunicationTest >> testSerialiseBlockClosure [
 	| blockClosure |
 	"Serialising a BlockClosure does not work at the moment"
+	self setUpOnBlock: self execBlock_PointCreation.	
+	
 	blockClosure := dbgc sendRequest: TestRequestReturnBlockClosure new.
 	self assert: blockClosure value equals: 42.
 ]
 
 { #category : #tests }
 DebuggerCommunicationTest >> testSerialiseContext [
-	| contextRepresentation nodeRepresentation |
+	| contextRepresentation nodeRepresentation selectorOfMethodContainingBlockToDebug |
+	selectorOfMethodContainingBlockToDebug := #execBlock_PointCreation.
+	self setUpOnBlock: (self perform: selectorOfMethodContainingBlockToDebug).
+	
 	contextRepresentation := dbgc sendRequest: TestRequestReturnContext new.
 	self assert: (contextRepresentation at: #receiver) equals: 'DebuggerCommunicationTest>>#testSerialiseContext'.
-	self assert: (contextRepresentation at: #method) equals: 'blockToDebug
-	^ [ Point x: 1 y: 2 ]'.
-	self assert: (contextRepresentation at: #selector) equals: 'blockToDebug'.
+	self assert: (contextRepresentation at: #method) equals: (self class >>selectorOfMethodContainingBlockToDebug) sourceCode.
+	self assert: (contextRepresentation at: #selector) equals: selectorOfMethodContainingBlockToDebug.
 	nodeRepresentation := contextRepresentation at: #node.
 	self assert: (nodeRepresentation at: #source) equals: 'Point x: 1 y: 2'.
 	self assert: (nodeRepresentation at: #nodeType) equals: 'RBMessageNode'.
@@ -110,5 +126,7 @@ DebuggerCommunicationTest >> testSerialiseContext [
 
 { #category : #tests }
 DebuggerCommunicationTest >> testSerialiseInteger [
+	self setUpOnBlock: self execBlock_PointCreation.
+
 	self assert: (dbgc sendRequest: TestRequestReturnFive new) equals: 5.
 ]

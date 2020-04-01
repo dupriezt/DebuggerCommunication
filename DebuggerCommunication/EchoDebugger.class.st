@@ -121,6 +121,7 @@ EchoDebugger >> resetData [
 { #category : #operation }
 EchoDebugger >> stepFailingExec [
 
+	(proxyClientForFailingExec isExecutionFinished or: [ proxyClientForFailingExec isAboutToSignalException  ]) ifTrue: [ RemoteExecutionCannotBeStepped signal ].
 	proxyClientForFailingExec step
 ]
 
@@ -178,5 +179,6 @@ EchoDebugger >> stepToSenderContextUntilConvergence [
 { #category : #operation }
 EchoDebugger >> stepWorkingExec [
 
+	(proxyClientForWorkingExec isExecutionFinished or: [ proxyClientForWorkingExec isAboutToSignalException  ]) ifTrue: [ RemoteExecutionCannotBeStepped signal ].
 	proxyClientForWorkingExec step
 ]
