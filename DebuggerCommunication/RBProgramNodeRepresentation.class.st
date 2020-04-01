@@ -6,7 +6,7 @@ Class {
 
 { #category : #'as yet unclassified' }
 RBProgramNodeRepresentation >> gtInspectorSourceCodeIn: composite [
-	<gtInspectorPresentationOrder: -1> 
+	<gtInspectorPresentationOrder: 0> 
 
 	^ composite pharoMethod 
 		title: [ 'Source code' translated ];

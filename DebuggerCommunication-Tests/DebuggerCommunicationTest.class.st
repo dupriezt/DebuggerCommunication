@@ -19,13 +19,25 @@ DebuggerCommunicationTest >> areExecutionsAtTheSamePoint [
 { #category : #tests }
 DebuggerCommunicationTest >> execBlock_failingTest [
 	| testInstance |
-	testInstance := FailingTestForDebuggerCommunication new.
+	testInstance := FodderForDebuggerCommunicationTest new.
 	^ [ testInstance testFails ].
+]
+
+{ #category : #tests }
+DebuggerCommunicationTest >> execBlock_passingTest [
+	| testInstance |
+	testInstance := FodderForDebuggerCommunicationTest new.
+	^ [ testInstance testPasses ].
 ]
 
 { #category : #tests }
 DebuggerCommunicationTest >> execBlock_pointCreation [
 	^ [ Point x: 1 y: 2 ]
+]
+
+{ #category : #tests }
+DebuggerCommunicationTest >> execBlock_signalError [
+	^ [ Error signal: 'test error' ]
 ]
 
 { #category : #'as yet unclassified' }
@@ -76,6 +88,31 @@ DebuggerCommunicationTest >> testExecutionIsFinished [
 	"This assertion fails because both execution arrived on the call to ProcessorScheduler>>#terminateActive, but the remote execution has a step hook to finish that call in one go, so it finishes it without the local execution doing any step. After that, the remote execution answer true to #isExecutionFinished, but not the local one"
 	self assert: dbgl isExecutionFinished & dbgp isExecutionFinished.
 	self assert: self areExecutionsAtTheSamePoint.
+	
+]
+
+{ #category : #tests }
+DebuggerCommunicationTest >> testRemoteExecutionIsPassingTest [
+
+	| nodes |
+	self setUpOnBlock: self execBlock_passingTest.
+	
+	nodes := OrderedCollection new.
+	[ dbgp isExecutionFinished ] whileFalse: [ nodes add: dbgp node. dbgp step ].
+	self halt.
+
+	
+]
+
+{ #category : #tests }
+DebuggerCommunicationTest >> testRemoteExecutionSignalsError [
+
+	| nodes |
+	self setUpOnBlock: self execBlock_signalError.
+	
+	nodes := OrderedCollection new.
+	[ dbgp isExecutionFinished ] whileFalse: [ nodes add: dbgp node. dbgp step ].
+
 	
 ]
 
