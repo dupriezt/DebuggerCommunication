@@ -13,12 +13,18 @@ Class {
 
 { #category : #tests }
 DebuggerCommunicationTest >> areExecutionsAtTheSamePoint [
-	^ dbgl node = dbgp node
+	^ (self serialiseMaterialise: dbgl node) = dbgp node
 ]
 
 { #category : #tests }
 DebuggerCommunicationTest >> execBlock_PointCreation [
 	^ [ Point x: 1 y: 2 ]
+]
+
+{ #category : #'as yet unclassified' }
+DebuggerCommunicationTest >> serialiseMaterialise: anObject [
+	"When getting an object from the local sindarin debugger, it cannot be compared directly to the equivalent object obtained from the remote sindarin debugger, because the latter may have been changed by the serialisation and materialisation it underwent. To compensate this, we need to also serialise and materialise the object from the local debugger."
+	^ dbgc materialise: (dbgServer serialise: anObject)
 ]
 
 { #category : #running }
