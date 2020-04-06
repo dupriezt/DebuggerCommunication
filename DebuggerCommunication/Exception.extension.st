@@ -4,6 +4,7 @@ Extension { #name : #Exception }
 Exception >> stonOn: stonWriter [
 	| dict |
 	dict := ExceptionRepresentation new.
+	dict at: #exceptionClass put: (self class asString).
 	dict at: #messageText put: messageText.
 	dict at: #tag put: tag.
 	dict at: #signaler put: (signaler asString).
