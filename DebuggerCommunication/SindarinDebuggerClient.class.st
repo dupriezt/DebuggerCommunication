@@ -44,8 +44,15 @@ SindarinDebuggerClient >> ping [
 
 { #category : #'private protocol' }
 SindarinDebuggerClient >> resignalExceptionSignalledByRemoteDebugger: anObject [
-	"@anObject is meant to be the materialised answer of the remotely debugged execution. If it is an exception it signalled, we signal this exception in the client image so that debugging scripts can catch it"
-	anObject isExceptionSignalledForDebuggedExecution ifTrue: [ anObject signal ]
+	"@anObject is meant to be the materialised answer of the remotely debugged execution. If it is tjhe representation of an exception it signalled, we signal this exception in the client image so that debugging scripts can catch it"
+	| exceptionToResignal |
+	anObject isExceptionSignalledForDebuggedExecution ifTrue: [
+		exceptionToResignal := (SmalltalkImage current classNamed: (anObject at: #exceptionClass)) new.
+		anObject associationsDo: [ :assoc |
+			(assoc key ~= #exceptionClass) ifTrue: [ exceptionToResignal instVarNamed: assoc key put: assoc value ].
+		exceptionToResignal signal.
+		]
+	]
 ]
 
 { #category : #communication }
