@@ -109,9 +109,9 @@ DebuggerCommunicationTest >> testRemoteExecutionSignalsError [
 
 	| nodes |
 	self setUpOnBlock: self execBlock_signalError.
-	
+	self halt.
 	nodes := OrderedCollection new.
-	[ dbgp isExecutionFinished or: [ dbgp isAboutToSignalException ] ] whileFalse: [ nodes add: dbgp node. dbgp step ].
+	self should: [[ dbgp isExecutionFinished ] whileFalse: [ nodes add: dbgp node. dbgp step ]] raise: Exception.
 
 	
 ]
