@@ -49,7 +49,7 @@ SindarinDebuggerClient >> send: aSymbol [
 
 { #category : #'private protocol' }
 SindarinDebuggerClient >> sendRequest: aRequest [
-	| client serialisedCommand response |
+	| client serialisedCommand response materialisedAnswer |
 	client := ZnClient new.
 	serialisedCommand := (ZnEntity bytes: aRequest serialized).
 	response := client
@@ -58,7 +58,9 @@ SindarinDebuggerClient >> sendRequest: aRequest [
 		post;
 		response.
 	"self halt."
-	^ self materialise: response entity contents
+	materialisedAnswer := self materialise: response entity contents.
+	self signalExceptionIfRemotelyDebuggedExecutionSignalledAnException: materialisedAnswer.
+	^ materialisedAnswer
 ]
 
 { #category : #'private protocol' }
@@ -86,4 +88,10 @@ SindarinDebuggerClient >> sendRequest_noMaterialisation: aRequest [
 { #category : #communication }
 SindarinDebuggerClient >> send_noMaterialisation: aSymbol [
   ^self sendRequest_noMaterialisation: (SindarinRequest new command: aSymbol ; yourself)
+]
+
+{ #category : #'private protocol' }
+SindarinDebuggerClient >> signalExceptionIfRemotelyDebuggedExecutionSignalledAnException: anObject [
+	"@anObject is meant to be the materialised answer of the remotely debugged execution. If it is an exception it signalled, we signal this exception in the client image so that debugging scripts can catch it"
+	anObject isExceptionSignalledByRemotelyDebuggedExecution ifTrue: [ anObject signal ]
 ]

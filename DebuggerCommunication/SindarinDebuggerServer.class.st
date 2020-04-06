@@ -61,7 +61,7 @@ SindarinDebuggerServer >> startListeningOnPort: anInt [
 			request isPing ifTrue: [
 				ZnResponse ok: (ZnStringEntity text: request correctResponse) ]
 			ifFalse: [
-				result := [[ self handleRequest: request ] on: UnhandledExceptionSignalledByADebuggedExecution do: [ :e | e ]] on: Error do: [ :e | e resignalAs: Halt ].
+				result := [[ self handleRequest: request ] on: UnhandledExceptionSignalledByADebuggedExecution do: [ :e | e "If the error is that the debugged execution signalled an unhandled exception, we answer the client's request with this exception  so that an exception can be signalled in the client image"]] on: Error do: [ :e | e resignalAs: Halt ].
 				"result := [ self handleRequest: request]
 					on: Error
 					do: [ :e | e resignalAs: Halt ]."
