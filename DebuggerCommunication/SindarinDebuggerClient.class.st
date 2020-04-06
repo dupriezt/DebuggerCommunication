@@ -42,6 +42,12 @@ SindarinDebuggerClient >> ping [
 	^ response entity contents = request correctResponse
 ]
 
+{ #category : #'private protocol' }
+SindarinDebuggerClient >> resignalExceptionSignalledByRemoteDebugger: anObject [
+	"@anObject is meant to be the materialised answer of the remotely debugged execution. If it is an exception it signalled, we signal this exception in the client image so that debugging scripts can catch it"
+	anObject isExceptionSignalledForDebuggedExecution ifTrue: [ anObject signal ]
+]
+
 { #category : #communication }
 SindarinDebuggerClient >> send: aSymbol [
   ^self sendRequest: (SindarinRequest new command: aSymbol ; yourself)
@@ -59,7 +65,7 @@ SindarinDebuggerClient >> sendRequest: aRequest [
 		response.
 	"self halt."
 	materialisedAnswer := self materialise: response entity contents.
-	self signalExceptionIfRemotelyDebuggedExecutionSignalledAnException: materialisedAnswer.
+	self resignalExceptionSignalledByRemoteDebugger: materialisedAnswer.
 	^ materialisedAnswer
 ]
 
@@ -88,10 +94,4 @@ SindarinDebuggerClient >> sendRequest_noMaterialisation: aRequest [
 { #category : #communication }
 SindarinDebuggerClient >> send_noMaterialisation: aSymbol [
   ^self sendRequest_noMaterialisation: (SindarinRequest new command: aSymbol ; yourself)
-]
-
-{ #category : #'private protocol' }
-SindarinDebuggerClient >> signalExceptionIfRemotelyDebuggedExecutionSignalledAnException: anObject [
-	"@anObject is meant to be the materialised answer of the remotely debugged execution. If it is an exception it signalled, we signal this exception in the client image so that debugging scripts can catch it"
-	anObject isExceptionSignalledByRemotelyDebuggedExecution ifTrue: [ anObject signal ]
 ]
