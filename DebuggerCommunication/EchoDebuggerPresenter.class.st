@@ -89,7 +89,7 @@ EchoDebuggerPresenter >> buttonAction_inspectSelectedEvent [
 
 { #category : #initialization }
 EchoDebuggerPresenter >> buttonAction_resetEchoDebugging [
-	^ [ echoDebugger resetData.
+	^ [ echoDebugger resetEchoDebugging.
 		self updateDataTable.
 		workingExecutionPresenter restartExecution.
 		failingExecutionPresenter restartExecution.

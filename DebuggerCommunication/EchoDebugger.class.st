@@ -4,7 +4,9 @@ Class {
 	#instVars : [
 		'proxyClientForWorkingExec',
 		'proxyClientForFailingExec',
-		'data'
+		'data',
+		'stepCounterWorkingExec',
+		'stepCounterFailingExec'
 	],
 	#category : #DebuggerCommunication
 }
@@ -36,8 +38,8 @@ EchoDebugger >> analyzeExecution [
 			nodes_f := (stepToConvergenceRes at: #steppedNodes_failing).
 			event := ConvergenceEvent new.
 		].
-		event index_working: startStepIndex_w + stepIndexIncrement_w.
-		event index_failing: startStepIndex_f + stepIndexIncrement_f.
+		event index_working: stepCounterWorkingExec "startStepIndex_w + stepIndexIncrement_w".
+		event index_failing: stepCounterFailingExec "startStepIndex_f + stepIndexIncrement_f".
 		event nodes_working: nodes_w.
 		event nodes_failing: nodes_f.
 		data add: event.
@@ -45,8 +47,8 @@ EchoDebugger >> analyzeExecution [
 		converge := converge not.
 	]] on: DebuggedExecutionException do: [
 		event := ExceptionSignalledOrExecutionFinishedEvent new.
-		event index_working: 0. self flag: 'Find a way to fill these fields properly'.
-		event index_failing: 0.
+		event index_working: stepCounterWorkingExec. self flag: 'Find a way to fill these fields properly'.
+		event index_failing: stepCounterFailingExec.
 		event nodes_working: 0.
 		event nodes_failing: 0.
 		data add: event. 
@@ -78,7 +80,7 @@ EchoDebugger >> goToEvent: anEchoDebuggerDataEvent [
 
 { #category : #initialization }
 EchoDebugger >> initialize [
-	self resetData
+	self resetEchoDebugging.
 ]
 
 { #category : #testing }
@@ -142,11 +144,25 @@ EchoDebugger >> resetData [
 	data add: conv.
 ]
 
+{ #category : #initialization }
+EchoDebugger >> resetEchoDebugging [
+	self resetStepCounters.
+	self resetData.
+]
+
+{ #category : #initialization }
+EchoDebugger >> resetStepCounters [
+	stepCounterWorkingExec := 0.
+	stepCounterFailingExec := 0
+]
+
 { #category : #operation }
 EchoDebugger >> stepFailingExec [
 
 	"(proxyClientForFailingExec isExecutionFinished or: [ proxyClientForFailingExec isAboutToSignalException  ]) ifTrue: [ RemoteExecutionCannotBeStepped signal ]."
-	proxyClientForFailingExec step
+	proxyClientForFailingExec step.
+	stepCounterFailingExec := stepCounterFailingExec + 1.
+	
 ]
 
 { #category : #operation }
@@ -204,5 +220,6 @@ EchoDebugger >> stepToSenderContextUntilConvergence [
 EchoDebugger >> stepWorkingExec [
 
 	"(proxyClientForWorkingExec isExecutionFinished or: [ proxyClientForWorkingExec isAboutToSignalException  ]) ifTrue: [ RemoteExecutionCannotBeStepped signal ]."
-	proxyClientForWorkingExec step
+	proxyClientForWorkingExec step.
+	stepCounterWorkingExec := stepCounterWorkingExec + 1.
 ]
