@@ -37,6 +37,7 @@ EchoDebuggerDataEvent >> nature [
 
 { #category : #accessing }
 EchoDebuggerDataEvent >> nodes_failing [
+	nodes_failing ifNil: [ nodes_failing := OrderedCollection new ].
 	^ nodes_failing
 ]
 
@@ -47,6 +48,7 @@ EchoDebuggerDataEvent >> nodes_failing: anObject [
 
 { #category : #accessing }
 EchoDebuggerDataEvent >> nodes_working [
+	nodes_working ifNil: [ nodes_working := OrderedCollection new ].
 	^ nodes_working
 ]
 

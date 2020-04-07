@@ -6,7 +6,8 @@ Class {
 		'proxyClientForFailingExec',
 		'data',
 		'stepCounterWorkingExec',
-		'stepCounterFailingExec'
+		'stepCounterFailingExec',
+		'focusedMethodNames'
 	],
 	#category : #DebuggerCommunication
 }
@@ -47,10 +48,10 @@ EchoDebugger >> analyzeExecution [
 		converge := converge not.
 	]] on: DebuggedExecutionException do: [
 		event := ExceptionSignalledOrExecutionFinishedEvent new.
-		event index_working: stepCounterWorkingExec. self flag: 'Find a way to fill these fields properly'.
+		event index_working: stepCounterWorkingExec.
 		event index_failing: stepCounterFailingExec.
-		event nodes_working: 0.
-		event nodes_failing: 0.
+		event nodes_working: OrderedCollection new. self flag: 'these fields do not make sense for this event'.
+		event nodes_failing: OrderedCollection new.
 		data add: event. 
 	]
 ]
@@ -63,6 +64,27 @@ EchoDebugger >> data [
 { #category : #'as yet unclassified' }
 EchoDebugger >> eitherExecutionIsFinished [
 	^ proxyClientForFailingExec isExecutionFinished or: [ proxyClientForWorkingExec isExecutionFinished ]
+]
+
+{ #category : #'as yet unclassified' }
+EchoDebugger >> eventIfEitherExecutionIsOnNodeOfFocusedMethod [
+	| nodeWorking fullSelectorWorkingExec nodeFailing fullSelectorFailingExec event |
+	nodeWorking := proxyClientForWorkingExec node.
+	fullSelectorWorkingExec := (nodeWorking at: #class), '>>#', (nodeWorking at: #methodSelector).
+	nodeFailing := proxyClientForFailingExec node.
+	fullSelectorFailingExec := (nodeFailing at: #class), '>>#', (nodeFailing at: #methodSelector).
+	((focusedMethodNames includes: fullSelectorWorkingExec) or: [focusedMethodNames includes: fullSelectorFailingExec]) ifTrue: [
+		"We reached a node belonging to a method in the focus list"
+		event := NodeOfFocusedMethodReachedEvent new.
+		event 	index_failing: stepCounterFailingExec.
+		event index_working: stepCounterWorkingExec.
+		self data add: event.
+	]
+]
+
+{ #category : #initialization }
+EchoDebugger >> focusedMethodNames [
+	^ focusedMethodNames
 ]
 
 { #category : #'as yet unclassified' }
@@ -107,7 +129,7 @@ EchoDebugger >> parallelStepUntilDivergence [
 	"Step both executions until they are not on the same node, or one of them is finished. Return the list of the ast nodes that were encountered by both executions, including the starting node"
 	| steppedNodes |
 	steppedNodes := OrderedCollection new.
-	[ self isOnSameNode ] whileTrue: [ steppedNodes add: proxyClientForWorkingExec node. self stepWorkingExec. self stepFailingExec. ].
+	[ self isOnSameNode ] whileTrue: [ steppedNodes add: proxyClientForWorkingExec node. self stepWorkingExec. self stepFailingExec. self eventIfEitherExecutionIsOnNodeOfFocusedMethod].
 	^ steppedNodes.
 	
 	"steppedNodes := OrderedCollection new.
@@ -148,6 +170,7 @@ EchoDebugger >> resetData [
 EchoDebugger >> resetEchoDebugging [
 	self resetStepCounters.
 	self resetData.
+	focusedMethodNames := OrderedCollection new.
 ]
 
 { #category : #initialization }
@@ -160,9 +183,9 @@ EchoDebugger >> resetStepCounters [
 EchoDebugger >> stepFailingExec [
 
 	"(proxyClientForFailingExec isExecutionFinished or: [ proxyClientForFailingExec isAboutToSignalException  ]) ifTrue: [ RemoteExecutionCannotBeStepped signal ]."
+	| node event |
 	proxyClientForFailingExec step.
 	stepCounterFailingExec := stepCounterFailingExec + 1.
-	
 ]
 
 { #category : #operation }
@@ -220,6 +243,7 @@ EchoDebugger >> stepToSenderContextUntilConvergence [
 EchoDebugger >> stepWorkingExec [
 
 	"(proxyClientForWorkingExec isExecutionFinished or: [ proxyClientForWorkingExec isAboutToSignalException  ]) ifTrue: [ RemoteExecutionCannotBeStepped signal ]."
+	| node event |
 	proxyClientForWorkingExec step.
 	stepCounterWorkingExec := stepCounterWorkingExec + 1.
 ]
