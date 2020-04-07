@@ -19,6 +19,11 @@ RBProgramNodeRepresentation >> gtInspectorSourceCodeIn: composite [
 		act: [ self inform: 'hello' "self methodNode method compiledMethod browse"] icon: GLMUIThemeExtraIcons glamorousBrowse entitled: 'Browse'
 ]
 
+{ #category : #testing }
+RBProgramNodeRepresentation >> isMessage [
+	^ self at: #nodeType = 'RBMessageNode'
+]
+
 { #category : #comparison }
 RBProgramNodeRepresentation >> keysToIgnoreForComparison [
 	^ { #methodSourceCode }
