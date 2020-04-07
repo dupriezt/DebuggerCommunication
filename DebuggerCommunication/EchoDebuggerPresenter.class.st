@@ -20,7 +20,8 @@ Class {
 		'inspectEchoDebuggerButton',
 		'restartEchoDebuggingButton',
 		'goToButton',
-		'inspectSelectedEventButton'
+		'inspectSelectedEventButton',
+		'inspectEchoDebuggerPresenterButton'
 	],
 	#category : #DebuggerCommunication
 }
@@ -67,6 +68,12 @@ EchoDebuggerPresenter >> buttonAction_goTo [
 { #category : #initialization }
 EchoDebuggerPresenter >> buttonAction_inspectEchoDebugger [
 	^ [ echoDebugger inspect
+	]
+]
+
+{ #category : #initialization }
+EchoDebuggerPresenter >> buttonAction_inspectEchoDebuggerPresenter [
+	^ [ self inspect
 	]
 ]
 
@@ -165,8 +172,9 @@ EchoDebuggerPresenter >> defaultSpec_ [
 				add: #analyzeExecutionButton withConstraints: self constraintsOfButtons;
 				add: #restartEchoDebuggingButton withConstraints: self constraintsOfButtons;
 				add: #inspectEchoDebuggerButton withConstraints: self constraintsOfButtons;
+				add: #inspectEchoDebuggerPresenterButton withConstraints: self constraintsOfButtons;
 				yourself	
-			) withConstraints: [:cstr | cstr height: 30 * 6];
+			) withConstraints: [:cstr | cstr height: 30 * 7];
 			add: (SpBoxLayout newVertical
 				add: 'Navigation' withConstraints: self constraintsOfLabels;
 				add: #dataViewer;
@@ -291,6 +299,10 @@ EchoDebuggerPresenter >> initializePresenters [
 	inspectEchoDebuggerButton := self newButton.
 	inspectEchoDebuggerButton label: 'Inspect Echo Debugger';
 	action: self buttonAction_inspectEchoDebugger.
+	
+	inspectEchoDebuggerPresenterButton := self newButton.
+	inspectEchoDebuggerPresenterButton label: 'Inspect Echo Debugger Presenter';
+	action: self buttonAction_inspectEchoDebuggerPresenter.
 	
 	statusViewerPageProvider := [ | statusTable keyColumn valueColumn |
 		statusTable := self newTable.
