@@ -18,7 +18,9 @@ Class {
 		'dataViewer',
 		'stepToSenderContextUntilConvergenceButton',
 		'inspectEchoDebuggerButton',
-		'restartEchoDebuggingButton'
+		'restartEchoDebuggingButton',
+		'goToButton',
+		'inspectSelectedEventButton'
 	],
 	#category : #DebuggerCommunication
 }
@@ -38,7 +40,7 @@ EchoDebuggerPresenter class >> open [
 { #category : #specs }
 EchoDebuggerPresenter class >> openOnPort [
 	<script>
-	(self on: {'5007'. '6007'} "model object, will be used as argument in #setModelBeforeInitialization:") openWithSpec.
+	(self on: {'5008'. '6008'} "model object, will be used as argument in #setModelBeforeInitialization:") openWithSpec.
 ]
 
 { #category : #initialization }
@@ -51,8 +53,30 @@ EchoDebuggerPresenter >> buttonAction_analyzeExecutionButton [
 ]
 
 { #category : #initialization }
+EchoDebuggerPresenter >> buttonAction_goTo [
+	| targetEvent |
+	^ [ self dataTable selectedItems ifEmpty: [ self inform: 'No data event selected to go to' ] ifNotEmpty: [ :c |
+			targetEvent := c first.
+			echoDebugger goToEvent: targetEvent.
+			workingExecutionPresenter refreshExecution.
+			failingExecutionPresenter refreshExecution.
+		].
+	]
+]
+
+{ #category : #initialization }
 EchoDebuggerPresenter >> buttonAction_inspectEchoDebugger [
 	^ [ echoDebugger inspect
+	]
+]
+
+{ #category : #initialization }
+EchoDebuggerPresenter >> buttonAction_inspectSelectedEvent [
+	| targetEvent |
+	^ [ self dataTable selectedItems ifEmpty: [ self inform: 'No data event selected to inspect' ] ifNotEmpty: [ :c |
+			targetEvent := c first.
+			targetEvent inspect.
+		].
 	]
 ]
 
@@ -146,6 +170,11 @@ EchoDebuggerPresenter >> defaultSpec_ [
 			add: (SpBoxLayout newVertical
 				add: 'Navigation' withConstraints: self constraintsOfLabels;
 				add: #dataViewer;
+				add: (SpBoxLayout newVertical
+					add: #goToButton withConstraints: self constraintsOfButtons;
+					add: #inspectSelectedEventButton withConstraints: self constraintsOfButtons;
+					yourself
+				) withConstraints: [:cstr | cstr height: 30 * 2];
 				yourself
 			);
 			yourself
@@ -300,6 +329,14 @@ EchoDebuggerPresenter >> initializePresenters [
 	dataViewerPage := SpNotebookPage title: 'data' provider: dataViewerPageProvider.
 	dataViewer := self newNotebook.
 	dataViewer addPage: dataViewerPage.
+	
+	goToButton := self newButton.
+	goToButton label: 'Go To';
+	action: self buttonAction_goTo.
+	
+	inspectSelectedEventButton := self newButton.
+	inspectSelectedEventButton label: 'Inspect Selected';
+	action: self buttonAction_inspectSelectedEvent.
 ]
 
 { #category : #initialization }

@@ -15,7 +15,8 @@ EchoDebugger >> analyzeExecution [
 	| roundNumber startStepIndex_w paraStepRes startStepIndex_f converge stepIndexIncrement_w stepIndexIncrement_f event stepToConvergenceRes nodes_w nodes_f |
 	roundNumber := 1.
 	converge := true.
-	[ (proxyClientForWorkingExec isExecutionFinished or: [ proxyClientForFailingExec isExecutionFinished ]) ] whileFalse: [ 
+	"[ (proxyClientForWorkingExec isExecutionFinished or: [ proxyClientForFailingExec isExecutionFinished ]) ] whileFalse: [ "
+	[[ true ] whileTrue: [ 
 		startStepIndex_w := (data at: roundNumber) index_working.
 		startStepIndex_f := (data at: roundNumber) index_failing.
 		stepIndexIncrement_w := 0.
@@ -42,8 +43,14 @@ EchoDebugger >> analyzeExecution [
 		data add: event.
 		roundNumber := roundNumber + 1.
 		converge := converge not.
-		self halt.
-	].
+	]] on: DebuggedExecutionException do: [
+		event := ExceptionSignalledOrExecutionFinishedEvent new.
+		event index_working: 0. self flag: 'Find a way to fill these fields properly'.
+		event index_failing: 0.
+		event nodes_working: 0.
+		event nodes_failing: 0.
+		data add: event. 
+	]
 ]
 
 { #category : #accessing }
@@ -54,6 +61,19 @@ EchoDebugger >> data [
 { #category : #'as yet unclassified' }
 EchoDebugger >> eitherExecutionIsFinished [
 	^ proxyClientForFailingExec isExecutionFinished or: [ proxyClientForWorkingExec isExecutionFinished ]
+]
+
+{ #category : #'as yet unclassified' }
+EchoDebugger >> goToEvent: anEchoDebuggerDataEvent [
+	"Restart both executions and step them until reaching the same number of steps @anEchoDebuggerDataEvent has occured at"
+	| event |
+	event := anEchoDebuggerDataEvent.
+	proxyClientForFailingExec restart.
+	proxyClientForWorkingExec restart.
+	
+	event index_working timesRepeat: [ proxyClientForWorkingExec step ].
+	event index_failing timesRepeat: [ proxyClientForFailingExec step ].
+	
 ]
 
 { #category : #initialization }
@@ -85,8 +105,12 @@ EchoDebugger >> parallelStepUntilDivergence [
 	"Step both executions until they are not on the same node, or one of them is finished. Return the list of the ast nodes that were encountered by both executions, including the starting node"
 	| steppedNodes |
 	steppedNodes := OrderedCollection new.
-	[ self isOnSameNode & proxyClientForWorkingExec isExecutionFinished not & proxyClientForFailingExec isExecutionFinished not ] whileTrue: [ steppedNodes add: proxyClientForWorkingExec node. self stepWorkingExec. self stepFailingExec. ].
+	[ self isOnSameNode ] whileTrue: [ steppedNodes add: proxyClientForWorkingExec node. self stepWorkingExec. self stepFailingExec. ].
 	^ steppedNodes.
+	
+	"steppedNodes := OrderedCollection new.
+	[ self isOnSameNode & proxyClientForWorkingExec isExecutionFinished not & proxyClientForFailingExec isExecutionFinished not ] whileTrue: [ steppedNodes add: proxyClientForWorkingExec node. self stepWorkingExec. self stepFailingExec. ].
+	^ steppedNodes."
 ]
 
 { #category : #accessing }
@@ -121,7 +145,7 @@ EchoDebugger >> resetData [
 { #category : #operation }
 EchoDebugger >> stepFailingExec [
 
-	(proxyClientForFailingExec isExecutionFinished or: [ proxyClientForFailingExec isAboutToSignalException  ]) ifTrue: [ RemoteExecutionCannotBeStepped signal ].
+	"(proxyClientForFailingExec isExecutionFinished or: [ proxyClientForFailingExec isAboutToSignalException  ]) ifTrue: [ RemoteExecutionCannotBeStepped signal ]."
 	proxyClientForFailingExec step
 ]
 
@@ -167,7 +191,7 @@ EchoDebugger >> stepToSenderContextUntilConvergence [
 	stepToSenderRes := self stepToSenderContext.
 	result at: #steppedNodes_working put: ((result at: #steppedNodes_working), (stepToSenderRes at: #steppedNodes_working)).
 	result at: #steppedNodes_failing put: ((result at: #steppedNodes_failing), (stepToSenderRes at: #steppedNodes_failing)).
-	[(stepToSenderRes at: #onSameNode) or: [self eitherExecutionIsFinished]] whileFalse: [ 
+	[(stepToSenderRes at: #onSameNode) "or: [self eitherExecutionIsFinished]"] whileFalse: [ 
 		stepToSenderRes := self stepToSenderContext.
 		result at: #steppedNodes_working put: ((result at: #steppedNodes_working), (stepToSenderRes at: #steppedNodes_working)).
 		result at: #steppedNodes_failing put: ((result at: #steppedNodes_failing), (stepToSenderRes at: #steppedNodes_failing)).
@@ -179,6 +203,6 @@ EchoDebugger >> stepToSenderContextUntilConvergence [
 { #category : #operation }
 EchoDebugger >> stepWorkingExec [
 
-	(proxyClientForWorkingExec isExecutionFinished or: [ proxyClientForWorkingExec isAboutToSignalException  ]) ifTrue: [ RemoteExecutionCannotBeStepped signal ].
+	"(proxyClientForWorkingExec isExecutionFinished or: [ proxyClientForWorkingExec isAboutToSignalException  ]) ifTrue: [ RemoteExecutionCannotBeStepped signal ]."
 	proxyClientForWorkingExec step
 ]
