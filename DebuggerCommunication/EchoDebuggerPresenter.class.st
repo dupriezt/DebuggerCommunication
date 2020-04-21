@@ -396,8 +396,10 @@ EchoDebuggerPresenter >> setModelBeforeInitialization: anObject [
 	@anObject is the argument provided to the #on: call. It typically contains all the values to be put into the instance variables"
 	
 	echoDebugger := EchoDebugger new.
-	initialPortWorkingExecution := anObject at: 1.
-	initialPortFailingExecution := anObject at: 2.
+	anObject ifNotNil: [
+		initialPortWorkingExecution := anObject at: 1.
+		initialPortFailingExecution := anObject at: 2.
+	]
 ]
 
 { #category : #initialization }
