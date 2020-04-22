@@ -26,3 +26,13 @@ SindarinDebuggerProxyClient >> newOnSindarinDebuggerClient: aSindarinDebuggerCli
 	sindarinDebuggerClient := aSindarinDebuggerClient.
 	^ self
 ]
+
+{ #category : #'Sindarin API' }
+SindarinDebuggerProxyClient >> node [
+	^ sindarinDebuggerClient send: #node.
+]
+
+{ #category : #'Sindarin API' }
+SindarinDebuggerProxyClient >> step [
+	^ sindarinDebuggerClient send: #step.
+]

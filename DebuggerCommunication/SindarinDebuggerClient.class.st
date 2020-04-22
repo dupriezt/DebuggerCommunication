@@ -2,7 +2,8 @@ Class {
 	#name : #SindarinDebuggerClient,
 	#superclass : #Object,
 	#instVars : [
-		'port'
+		'port',
+		'client'
 	],
 	#category : #DebuggerCommunication
 }
@@ -62,8 +63,8 @@ SindarinDebuggerClient >> send: aSymbol [
 
 { #category : #'private protocol' }
 SindarinDebuggerClient >> sendRequest: aRequest [
-	| client serialisedCommand response materialisedAnswer |
-	client := ZnClient new.
+	| serialisedCommand response materialisedAnswer |
+	client ifNil: [ client := ZnClient new ].
 	serialisedCommand := (ZnEntity bytes: aRequest serialized).
 	response := client
 		url: 'http://localhost:', port asString;

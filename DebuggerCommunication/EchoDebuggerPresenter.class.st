@@ -93,6 +93,7 @@ EchoDebuggerPresenter >> buttonAction_resetEchoDebugging [
 		self updateDataTable.
 		workingExecutionPresenter restartExecution.
 		failingExecutionPresenter restartExecution.
+		self flag: 'Doing {echoDebugger resetEchoDebugging} should already be restarting the execution. But the refresh of the RemoteDebuggerPresenters has to be done'
 	]
 ]
 
