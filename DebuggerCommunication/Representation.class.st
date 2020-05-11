@@ -24,6 +24,22 @@ Representation >> = aRBProgramNodeRepresentation [
 ]
 
 { #category : #comparison }
+Representation >> hash [
+	"Same #hash as Dictionary, but ignoring keys in keysToIgnoreForComparison
+	
+	Answer an integer hash value for the receiver such that,
+	  -- the hash value of an unchanged object is constant over time, and
+	  -- two equal objects have equal hash values"
+
+	| hash |
+
+	hash := self species hash.
+	self size <= 10 ifTrue:
+		[self associationsDo: [:assoc | (self keysToIgnoreForComparison includes: assoc key) ifFalse: [hash := hash bitXor: assoc value hash]]].
+	^hash bitXor: self size hash
+]
+
+{ #category : #comparison }
 Representation >> keysToIgnoreForComparison [
 	^ {  }
 ]
