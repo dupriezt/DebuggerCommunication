@@ -7,7 +7,9 @@ Class {
 		'data',
 		'stepCounterWorkingExec',
 		'stepCounterFailingExec',
-		'focusedMethodNames'
+		'focusedMethodNames',
+		'preliminaryDataWorkingExec',
+		'preliminaryDataFailingExec'
 	],
 	#category : #DebuggerCommunication
 }
@@ -56,6 +58,18 @@ EchoDebugger >> analyzeExecution [
 	]
 ]
 
+{ #category : #initialization }
+EchoDebugger >> analyzeExecution2 [
+	"Assumes the executions are both at the beginning"
+	| analyser |
+	preliminaryDataWorkingExec := self fullyExecuteAndGetPreliminaryDataFrom: proxyClientForWorkingExec.
+	preliminaryDataFailingExec := self fullyExecuteAndGetPreliminaryDataFrom: proxyClientForFailingExec.
+	"analyser := EchoDebuggingPreliminaryDataAnalyser new.
+	analyser preliminaryDataWorkingExec: preliminaryDataWorkingExec.
+	analyser preliminaryDataFailingExec: preliminaryDataFailingExec.
+	^ analyser performAnalysis."
+]
+
 { #category : #accessing }
 EchoDebugger >> data [
 	^ data
@@ -85,6 +99,20 @@ EchoDebugger >> eventIfEitherExecutionIsOnNodeOfFocusedMethod [
 { #category : #initialization }
 EchoDebugger >> focusedMethodNames [
 	^ focusedMethodNames
+]
+
+{ #category : #initialization }
+EchoDebugger >> fullyExecuteAndGetPreliminaryDataFrom: aProxyClient [
+	| resultBatches batchReceived preliminaryData |
+	resultBatches := OrderedCollection new.
+	batchReceived := aProxyClient stepBatchAndReturnNodeHashAndStackSize.
+	[ batchReceived size > 1 ] whileTrue: [ 
+		resultBatches add: batchReceived.
+		batchReceived := aProxyClient stepBatchAndReturnNodeHashAndStackSize.
+	].
+	"Put the batches in resultBatches end to end in a singl collection"
+	preliminaryData := resultBatches inject: OrderedCollection new into: [ :acc :elem | acc addAll: elem. acc ].
+	^ preliminaryData
 ]
 
 { #category : #'as yet unclassified' }
