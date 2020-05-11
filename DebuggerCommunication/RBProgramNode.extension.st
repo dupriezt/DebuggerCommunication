@@ -1,7 +1,7 @@
 Extension { #name : #RBProgramNode }
 
 { #category : #'*DebuggerCommunication' }
-RBProgramNode >> stonOn: stonWriter [
+RBProgramNode >> dictionaryRepresentation [
 	| dict |
 	dict := RBProgramNodeRepresentation new.
 	dict at: #start put: self start.
@@ -12,5 +12,12 @@ RBProgramNode >> stonOn: stonWriter [
 	dict at: #methodSourceCode put: self source.
 	dict at: #source put: self sourceCode.
 	"stonWriter writeString: 'RBProgramNode'."
+	^ dict
+]
+
+{ #category : #'*DebuggerCommunication' }
+RBProgramNode >> stonOn: stonWriter [
+	| dict |
+	dict := self dictionaryRepresentation.
 	dict stonOn: stonWriter.
 ]
