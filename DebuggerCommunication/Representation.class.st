@@ -33,7 +33,7 @@ Representation >> hash [
 
 	| hash |
 
-	hash := self species hash.
+	hash := self species name hash. "Hashing the name of the species (= self class) instead of hasing the species, so that it gives the same result in two different images"
 	self size <= 10 ifTrue:
 		[self associationsDo: [:assoc | (self keysToIgnoreForComparison includes: assoc key) ifFalse: [hash := hash bitXor: assoc value hash]]].
 	^hash bitXor: self size hash
