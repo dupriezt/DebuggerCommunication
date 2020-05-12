@@ -61,9 +61,19 @@ EchoDebugger >> analyzeExecution [
 { #category : #initialization }
 EchoDebugger >> analyzeExecution2 [
 	"Assumes the executions are both at the beginning"
-	| analyser |
-	preliminaryDataWorkingExec := self fullyExecuteAndGetPreliminaryDataFrom: proxyClientForWorkingExec.
-	preliminaryDataFailingExec := self fullyExecuteAndGetPreliminaryDataFrom: proxyClientForFailingExec.
+	| analyser semaphoreWExec semaphoreFExec |
+	semaphoreWExec := Semaphore new.
+	semaphoreFExec := Semaphore new.
+	[
+		preliminaryDataWorkingExec := self fullyExecuteAndGetPreliminaryDataFrom: proxyClientForWorkingExec.
+		semaphoreWExec signal.
+	] forkNamed: 'EchoDedbugger: get preliminary data from working execution'.
+	[ 
+		preliminaryDataFailingExec := self fullyExecuteAndGetPreliminaryDataFrom: proxyClientForFailingExec.
+		semaphoreFExec signal.
+	] forkNamed: 'EchoDebugger: get preliminary data from failing execution'.
+	semaphoreWExec wait.
+	semaphoreFExec wait.
 	"analyser := EchoDebuggingPreliminaryDataAnalyser new.
 	analyser preliminaryDataWorkingExec: preliminaryDataWorkingExec.
 	analyser preliminaryDataFailingExec: preliminaryDataFailingExec.
