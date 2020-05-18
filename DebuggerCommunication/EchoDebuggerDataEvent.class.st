@@ -32,6 +32,7 @@ EchoDebuggerDataEvent >> index_working: anObject [
 
 { #category : #'as yet unclassified' }
 EchoDebuggerDataEvent >> nature [
+	"Should return the name of the event as a string. Displayed in the UI"
 	self subclassResponsibility
 ]
 

@@ -9,13 +9,15 @@ Class {
 		'stepCounterFailingExec',
 		'focusedMethodNames',
 		'preliminaryDataWorkingExec',
-		'preliminaryDataFailingExec'
+		'preliminaryDataFailingExec',
+		'analyser'
 	],
 	#category : #DebuggerCommunication
 }
 
 { #category : #initialization }
 EchoDebugger >> analyzeExecution [
+	"Old version. Had big performance problems"
 	"Assumes the executions are both at the beginning"
 	| roundNumber startStepIndex_w paraStepRes startStepIndex_f converge stepIndexIncrement_w stepIndexIncrement_f event stepToConvergenceRes nodes_w nodes_f |
 	roundNumber := 1.
@@ -61,7 +63,7 @@ EchoDebugger >> analyzeExecution [
 { #category : #initialization }
 EchoDebugger >> analyzeExecution2 [
 	"Assumes the executions are both at the beginning"
-	| analyser semaphoreWExec semaphoreFExec |
+	| semaphoreWExec semaphoreFExec |
 	semaphoreWExec := Semaphore new.
 	semaphoreFExec := Semaphore new.
 	[
@@ -74,10 +76,27 @@ EchoDebugger >> analyzeExecution2 [
 	] forkNamed: 'EchoDebugger: get preliminary data from failing execution'.
 	semaphoreWExec wait.
 	semaphoreFExec wait.
-	"analyser := EchoDebuggingPreliminaryDataAnalyser new.
+	analyser := EchoDebuggingPreliminaryDataAnalyser new.
 	analyser preliminaryDataWorkingExec: preliminaryDataWorkingExec.
 	analyser preliminaryDataFailingExec: preliminaryDataFailingExec.
-	^ analyser performAnalysis."
+	data := data, (self convertAnalysisResultToEvents: analyser performAnalysis).
+]
+
+{ #category : #initialization }
+EchoDebugger >> convertAnalysisResultToEvents: analysisResult [
+	"@analysisResult an OrderedCollection of arrays, each representing either a divergence of a convergence in the echo-executions. Each array contains 3 elements: a String 'divergence' or 'convergence', an Integer with the step number at which the divergence/convergence happened in the working executions, an Integer with the step number at which the div/conv happened in the failing execution"
+	^ analysisResult collect: [:dataPoint | | divergenceOrConvergenceString stepNumberWExec stepNumberFExec event |
+		divergenceOrConvergenceString := dataPoint at: 1.
+		stepNumberWExec := dataPoint at: 2.
+		stepNumberFExec := dataPoint at: 3.
+		event := nil.
+		(divergenceOrConvergenceString = 'divergence') ifTrue: [ event := DivergenceEvent new ].
+		(divergenceOrConvergenceString = 'convergence') ifTrue: [ event := ConvergenceEvent new ].
+		event ifNil: [ self error: 'Unknown type of datapoint' ].
+		event index_working: stepNumberWExec.
+		event index_failing: stepNumberFExec.
+		event
+	]
 ]
 
 { #category : #accessing }
@@ -199,7 +218,7 @@ EchoDebugger >> proxyClientForWorkingExec: anObject [
 EchoDebugger >> resetData [
 	| conv |
 	data := EchoDebuggerData new.
-	conv := ConvergenceEvent new.
+	conv := StartEvent new.
 	conv index_working: 0; index_failing: 0; nodes_working: OrderedCollection new; nodes_failing: OrderedCollection new.
 	data add: conv.
 ]

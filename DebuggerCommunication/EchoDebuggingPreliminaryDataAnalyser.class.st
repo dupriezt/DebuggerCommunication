@@ -7,7 +7,8 @@ Class {
 		'stepCounterW',
 		'stepCounterF',
 		'sizeOfDataForWExec',
-		'sizeOfDataForFExec'
+		'sizeOfDataForFExec',
+		'analysisResult'
 	],
 	#category : #DebuggerCommunication
 }
@@ -15,7 +16,7 @@ Class {
 { #category : #'as yet unclassified' }
 EchoDebuggingPreliminaryDataAnalyser >> performAnalysis [
 	"preliminaryDataWorkingExec and  preliminaryDataFailingExec are expected to be of the form: an array containing an item per step the execution took to finish. Each item is an array of size 2: first element is the hash of the current ast node, second element is the size of the stack at that step."
-	| convergent analysisResult stepDataW stepDataF convergent_newValue |
+	| convergent stepDataW stepDataF convergent_newValue |
 	stepCounterW := 1.
 	stepCounterF := 1.
 	convergent := true.

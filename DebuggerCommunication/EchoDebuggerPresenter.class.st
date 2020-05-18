@@ -46,7 +46,10 @@ EchoDebuggerPresenter class >> openOnPort [
 
 { #category : #initialization }
 EchoDebuggerPresenter >> buttonAction_analyzeExecutionButton [
-	^ [ echoDebugger analyzeExecution.
+	^ [ echoDebugger analyzeExecution2.
+		workingExecutionPresenter restartExecution.
+		failingExecutionPresenter restartExecution.
+		self flag: 'Doing {echoDebugger resetEchoDebugging} should already be restarting the execution. But the refresh of the RemoteDebuggerPresenters has to be done'.
 		workingExecutionPresenter refreshExecution.
 		failingExecutionPresenter refreshExecution.
 		self updateDataTable.
@@ -417,10 +420,16 @@ EchoDebuggerPresenter >> updateDataTable [
 { #category : #initialization }
 EchoDebuggerPresenter >> updateStatusTable [
 	| items |
-	echoDebugger isBothDebuggersConnected ifFalse: [^self].
 	items := Dictionary new.
-	items at: #'Node =?' put: workingExecutionPresenter selectedNode = failingExecutionPresenter selectedNode.
-	items at: #'Context =?' put: workingExecutionPresenter selectedContext = failingExecutionPresenter selectedContext.
+	items at: #'Node =?' put: nil.
+	items at: #'Context =?' put: nil.
+	
+	echoDebugger isBothDebuggersConnected ifTrue: [
+		items at: #'Node =?' put: workingExecutionPresenter selectedNode = failingExecutionPresenter selectedNode.
+		items at: #'Context =?' put: workingExecutionPresenter selectedContext = failingExecutionPresenter selectedContext.			
+	].
+	
+
 	self statusTable items: items associations.
 ]
 
