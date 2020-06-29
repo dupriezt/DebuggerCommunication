@@ -17,7 +17,8 @@ Class {
 		'subscribersToDebuggerConnectedEvent',
 		'subscribersToStackTableSelectionChangedEvent',
 		'nodeRepresentation',
-		'restartButton'
+		'restartButton',
+		'connectButton'
 	],
 	#category : #DebuggerCommunication
 }
@@ -120,7 +121,11 @@ RemoteDebuggerPresenter >> defaultSpec_ [
 
 	connectionBoxLayout := SpBoxLayout newVertical
 		add: 'port' withConstraints: self constraintsOfLabels;
-		add: #portField;
+		add: (SpBoxLayout newHorizontal
+			add: #portField;
+			add: #connectButton expand: false;
+			yourself
+		);
 		"add: #connectButtons withConstraints: self constraintsOfButtons;"
 		yourself.
 
@@ -207,8 +212,12 @@ RemoteDebuggerPresenter >> iconManager [
 RemoteDebuggerPresenter >> initializePresenters [
 	| stackPresenterProvider stackPage contextPresenterProvider contextPage nodeViewerCodePageProvider nodeViewerCodePage nodeViewerRawPageProvider nodeViewerRawPage |
 	portField := self newNumberInput.
-	portField whenTextIsAcceptedDo: [:port | self connectToDebuggerServerOnPort: port ].
+	"portField whenNumberChangedDo: [:port | self connectToDebuggerServerOnPort: port ]."
 	"connectButtons := self newButton."
+	
+	connectButton := self newButton.
+	connectButton label: 'Connect';
+	action: [self connectToDebuggerServerOnPort: portField text].
 	
 	inspectButton := self newButton.
 	inspectButton label: 'Inspect';
@@ -271,7 +280,7 @@ RemoteDebuggerPresenter >> initializePresenters [
 	].
 	nodeViewerCodePageProvider := [ | nodeViewerCodePresenter |
 		nodeViewerCodePresenter := self newCode.
-		nodeViewerCodePresenter withSyntaxHighlight; acceptBlock: [ ]; autoAccept: true.
+		nodeViewerCodePresenter withSyntaxHighlight; autoAccept: true.
 		nodeViewerCodePresenter.
 	].
 	nodeViewerCodePage := SpNotebookPage title: 'node (code)' provider: nodeViewerCodePageProvider.
@@ -372,13 +381,15 @@ RemoteDebuggerPresenter >> stackTable [
 RemoteDebuggerPresenter >> stackTableSelectionChangedBlock [
 	| selectedContext |
 	^ [ :newSelection |
-		selectedContext := self stackTable items at: newSelection selectedIndex.
-		self contextTable items: selectedContext associations.
-		nodeRepresentation := selectedContext at: #node.
-		(self nodeViewerRawTable) ifNotNil: [:nodeViewerRawTable | nodeViewerRawTable items: (selectedContext at: #node) associations].
-		self nodeViewerCodePresenter text: (nodeRepresentation at: #methodSourceCode).
-		self nodeViewerCodePresenter behavior: (SmalltalkImage current classNamed: (selectedContext at: #class)).
-		self nodeViewerCodePresenter selectionInterval: ((nodeRepresentation at: #start) to: (nodeRepresentation at: #stop)).
-		self event_sendStackTableSelectionChangedEvent.
+		newSelection selectedIndex ~= 0 ifTrue: [
+			selectedContext := self stackTable items at: newSelection selectedIndex.
+			self contextTable items: selectedContext associations.
+			nodeRepresentation := selectedContext at: #node.
+			(self nodeViewerRawTable) ifNotNil: [:nodeViewerRawTable | nodeViewerRawTable items: (selectedContext at: #node) associations].
+			self nodeViewerCodePresenter text: (nodeRepresentation at: #methodSourceCode).
+			self nodeViewerCodePresenter behavior: (SmalltalkImage current classNamed: (selectedContext at: #class)).
+			self nodeViewerCodePresenter selectionInterval: ((nodeRepresentation at: #start) to: (nodeRepresentation at: #stop)).
+			self event_sendStackTableSelectionChangedEvent.
 		]
+	]
 ]
