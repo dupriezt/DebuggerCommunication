@@ -29,14 +29,16 @@ EchoDebuggingPreliminaryDataAnalyser >> performAnalysis [
 			convergent_newValue := true.
 			convergent ifFalse: [ 
 				"The executions were divergent and are now convergent. Adding this point to analysisResult"	
-				analysisResult add: { 'convergence'. stepCounterW. stepCounterF}.
+				analysisResult add: { 'convergence'. stepCounterW - 1. stepCounterF - 1}.
+				"-1 to get the number of steps required to reach that point. step counters start at 1 because they are index in the collection of preliminary data, but numbers of steps start at 0"
 			]
 		] ifFalse: [ 
 			"The executions are currently divergent"
 			convergent_newValue := false.
 			convergent ifTrue: [ 
 				"The executions were convergent and are now convergent. Adding this point to analysisResult"
-				analysisResult add: { 'divergence'. stepCounterW. stepCounterF}.
+				analysisResult add: { 'divergence'. stepCounterW - 1. stepCounterF - 1}.
+				"-1 to get the number of steps required to reach that point. step counters start at 1 because they are index in the collection of preliminary data, but numbers of steps start at 0"
 			].
 		].
 		convergent := convergent_newValue.
