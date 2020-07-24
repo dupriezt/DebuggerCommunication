@@ -26,5 +26,5 @@ RBProgramNodeRepresentation >> isMessage [
 
 { #category : #comparison }
 RBProgramNodeRepresentation >> keysToIgnoreForComparison [
-	^ { #methodSourceCode }
+	^ { #methodSourceCode. #start. #stop }
 ]
